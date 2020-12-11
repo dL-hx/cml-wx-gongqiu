@@ -1,0 +1,383 @@
+<template>
+  <view class="box gongxu_list">
+    <view class="banner">
+      <!--<image src="{{ bannerSrc }}"></image>-->
+    </view>
+
+    <view class="container">
+      <view class="search-box">
+        <view class="pickerbox" style="padding-left:15cpx;">
+          <m-picker
+                  isCenter
+                  list="{{ industrial }}"
+                  name="industrialId"
+                  placeholder="工业类型"
+                  index="{{ formData.industrialId }}"
+                  c-bind:selectevent="onPickerSelectChange"
+          >
+          </m-picker>
+        </view>
+        <image src="{{ sjx2Src }}" style="height: 20cpx;width: 20cpx;margin-left:6cpx; margin-right:12cpx"></image>
+
+
+        <view class="pickerbox" style="">
+          <m-picker
+                  list="{{ cities }}"
+                  name="provinceId"
+                  isCenter
+                  placeholder="地区"
+                  index="{{ formData.provinceId }}"
+                  c-bind:selectevent="onPickerSelectChange"
+          >
+          </m-picker>
+        </view>
+        <image src="{{ sjx2Src }}" style="height: 20cpx;width: 20cpx;margin-left:6cpx; margin-right:12cpx"></image>
+
+
+        <view style="flex: 1" class="item">
+          <input type="text"
+                 data-name="keyWord"
+                 value="{{ formData.keyWord }}"
+                 placer-holder-color="rgba(0, 0, 0, .45)"
+                 c-style="background-color: transparent; border: 0;"
+                 placeholder="关键字"
+                 c-bind:input="onInputChange"
+                 c-bind:confirm="handleSearchClick"
+          />
+        </view>
+        <view style="width: 80cpx" class="item" c-bind:tap="handleSearchClick">
+          <image src="{{ searchSrc }}" style="height: 80cpx;width: 80cpx;"></image>
+        </view>
+
+      </view>
+
+      <view class="list w gongxu">
+
+        <view class="list-container">
+          <block c-if="{{ list.length>0 }}">
+          <refresh-view enablePullUpLoad="{{true}}"
+                        pullingUp="{{pullingUp}}"
+                        c-bind:onPullUpLoad="pullUploadHandle">
+          <view class="list-item" c-for="{{ list }}" c-for-index="idx" c-for-item="item"  c-bind:tap="goToPathHandle('/pages/xuqiu-detail/xuqiu-detail', item)">
+            <view class="list-item-text">
+              <text class="title">{{ item.title }}</text>
+
+<!-- m-icon-text -->
+             <view style="flex-direction: row; align-items: center;overflow: hidden;">
+               <image src="{{ phoneSrc }}" style="height: 20cpx;width: 20cpx;"></image>
+               <text class="subTitle">{{ item.subTitle }}</text>
+             </view>
+<!-- m-icon-text -->
+             <view style="flex-direction: row; align-items: center">
+               <image src="{{ dateSrc }}" style="height: 20cpx;width: 20cpx;"></image>
+               <text class="date">{{ item.date }}</text>
+             </view>
+<!-- m-icon-text -->
+
+            </view>
+            <image style="display:none;width:33%;height: 146cpx;" src="{{ item.url ? item.url: defaultSrc }}"></image>
+          </view>
+            <text class="loading-text">{{loadingText}}</text>
+          </refresh-view>
+          </block>
+
+          <block c-else>
+            <view class="default"></view>
+          </block>
+        </view>
+      </view>
+    </view>
+  </view>
+
+</template>
+
+<script>
+  import cml from 'chameleon-api'
+  import xuqiuData from '../../assets/json/xuqiu.json';
+  import request from "../../utils/request";
+  import urlConfig from "../../utils/urlConfig";
+  import {dateFormat, formatDate, formatDateToYear} from "../../utils/utils";
+
+  const PAGE_SIZE = 10
+
+  const loadMore = function (obj) {
+
+    obj.params = obj.params || {}
+
+    request('/requirement/list', {
+      size: PAGE_SIZE,
+      page: obj.pageNow||1,
+      ...obj.params },'GET')
+            .then(res=>{
+              const data = res.data.list.map(item => {
+                const { requirementName,companyName,annexUrl ,issueDate, ...rest} = item
+                const url = annexUrl&&((annexUrl.indexOf('http')>-1 ? '': "//") + annexUrl)|| ''
+                return {
+                  url: url,
+                  subTitle: companyName,
+                  title:requirementName,
+                  date:dateFormat(issueDate),
+                  ...rest
+                }
+              })
+
+              obj.cb&&obj.cb({
+                list: data,
+                total: res.data.total,
+              })
+            })
+  }
+
+
+  class XuqiuList   {
+
+    data = {
+      bannerSrc:"https://wm.source.wiimedia.cn/banner/banner1.jpg",
+      searchSrc: "https://wm.source.wiimedia.cn/icon/ss-btn2.png",
+      phoneSrc: "https://wm.source.wiimedia.cn/icon/phone.png",
+      dateSrc: "https://wm.source.wiimedia.cn/icon/date.png",
+      defaultSrc: "https://wm.source.wiimedia.cn/images/default.jpg",
+      downSrc: "https://wm.source.wiimedia.cn/icon/down.png",
+      boxSrc:"https://wm.source.wiimedia.cn/icon/box.png",
+
+      sjx2Src: "https://wm.source.wiimedia.cn/images/sjx2.png",
+
+
+      pullingUp: false,
+      loadingText: '加载中...',
+
+      pageNow:1, // 当前的页码
+      total:1, // 列表总数
+
+
+
+      cities: xuqiuData.data.citiesList,
+      industrial: xuqiuData.data.industrialList,
+
+      // list: gongeiData.data.gongeiList
+      list: [],
+
+      // 表单的数据模型
+      formData:{
+        industrialId:"",
+        provinceId:"",
+        keyWord:'',//'镇街/园区',
+      },
+
+  }
+
+    computed = {
+
+    }
+
+    watch  = {
+    }
+
+    methods = {
+      onPickerSelectChange({detail}){
+        const { name, value } = detail
+        this.formData[`${name}`] = value// 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      },
+
+      onInputChange(e){
+        const name = e.target.dataset.name
+        const value = e.detail.value
+        this.formData[`${name}`] = value // // this.data.formData 是obj 对象, 指向这个元素的引用地址
+      },
+
+      goToPathHandle(path , query={}){
+        // const opt= e.currentTarget.dataset.opt
+        cml.navigateTo({
+          path,
+          query
+        })
+      },
+
+
+      handleSearchClick(){
+        const me = this
+
+        const formData = this.data.formData
+        // console.log('表单搜索',this.data.formData)
+        loadMore({
+          params:{...formData},
+          cb:function (res) {
+            me.list = res.list
+            me.total = res.total
+          }
+        })
+
+        this.loadingText = ''
+
+      },
+        pullUploadHandle(e) {
+          this.pullingUp = true;
+          let me = this
+          const isAddPage =  me.pageNow < me.total / PAGE_SIZE
+          if (isAddPage){
+            me.loadingText = '加载中...'
+            me.pageNow = me.data.pageNow + 1
+
+            loadMore({
+              pageNow:me.pageNow,
+              cb:function (res) {
+                me.loadingText = '加载完成'
+                me.list = me.list.concat(res.list)
+                me.pullingUp = false;
+              }
+            })
+          }else {// 不增加新页面, 即到底部
+            me.loadingText = '没有更多数据'
+          }
+        }
+  }
+
+  beforeCreate(query) {
+    let me = this
+
+    this.formData.keyWord = query.search&&decodeURIComponent(query.search)  || ''
+    if (this.formData.keyWord.length>0){
+      loadMore({
+        params:{keyWord: me.formData.keyWord},
+        cb:function (res) {
+          me.list = res.list
+          me.total = res.total
+        }
+      })
+      return;
+    }
+
+    loadMore({
+      cb:function (res) {
+        me.list = res.list
+        me.total = res.total
+      }
+    })
+   }
+
+    created(query) {
+    }
+
+    beforeMount(query) {
+    }
+
+    onShow() {
+      this.loadingText = ''
+    }
+
+    mounted() {
+    }
+
+    onHide() {
+    }
+
+    beforeDestroy() {
+    }
+
+    destroyed() {
+    }
+  }
+
+  export default new XuqiuList();
+</script>
+<style>
+/* @import './global.css'; */
+/* 供给清单/需求订单 页 */
+.box.gongxu_list{
+    width: 100%;
+    height: 100%;
+  }
+
+  .box.gongxu_list .banner{
+    height: 300cpx;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-image:url(https://wm.source.wiimedia.cn/banner/banner1.jpg);
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position-y: top;
+  }
+
+  .box.gongxu_list .banner image{
+    width: 100%;
+    height: auto;
+  }
+
+  .box.gongxu_list .container{
+    flex: 1;
+    border-radius: 12cpx 12cpx 0 0;
+    margin-top: -20cpx;
+    background-color: #ffffff;
+  }
+  .box.gongxu_list .container .search-box{
+    flex-direction: row;
+    height: 80cpx;
+    margin:0 30cpx;
+    margin-top: 30cpx;
+    background-color: #f5f5f5;
+    align-items: center;
+
+    border: 1cpx solid #e8e8e8;
+    border-radius: 12cpx;
+  }
+
+  .box.gongxu_list .container .search-box .item{
+    justify-content: center;
+  }
+
+  .list.gongxu{
+    margin: 0 30cpx;
+    margin-top: 30cpx;
+  }
+  .list.gongxu .list-container{
+    height: 500cpx;
+  }
+  .list.gongxu .list-item {
+    flex-direction: row;
+    padding:30cpx 0;
+    height:190cpx;
+    align-items: center;
+    border-bottom: 1cpx solid #fafafa;
+    overflow: hidden;
+  }
+  .list.gongxu .list-item-text {
+    flex: 1;
+    height: 150cpx;
+    line-height: 45cpx;
+    text-align: justify;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+  }
+  .list.gongxu .list-item-text .subTitle{
+    font-size: 24cpx;
+    margin-left: 10cpx;
+  }
+  .list.gongxu .list-item-text .date{
+    font-size: 25cpx;
+    color: #999999;
+    margin-left: 10cpx;
+  }
+  .pickerbox {
+      flex-direction: row;align-items: center;
+  }
+</style>
+<script cml-type="json">
+  {
+    "base": {
+    "usingComponents": {
+      "m-picker": "../../components/m-picker/m-picker"
+
+    }
+  },
+    "wx": {
+      "navigationBarTitleText": "需求清单",
+      "backgroundTextStyle": "dark",
+      "backgroundColor": "#E2E2E2"
+    }
+  }
+</script>

@@ -1,0 +1,34 @@
+<script cml-type="interface">
+
+type Callback = (res: Object) => void;
+
+interface LoginInterface {
+  login(success:Callback): void;
+}
+
+</script>
+
+
+
+<script cml-type="wx">
+
+class Method implements LoginInterface {
+  login(success) {
+    wx.login({
+      timeout: 1000,
+      success(res) {
+        success&&success(res)
+      }
+    })
+  }
+}
+
+export default new Method();
+</script>
+
+
+
+
+
+
+

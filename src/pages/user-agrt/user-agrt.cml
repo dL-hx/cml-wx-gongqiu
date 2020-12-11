@@ -1,0 +1,200 @@
+<template>
+  <view class="box">
+    <view class="header">
+      <text class="title">西安市工业企业供需对接平台</text>
+      <text class="title">用户服务协议</text>
+    </view>
+    <view class="content">
+      <text>一、总则</text>
+      <text class="text-index">欢迎使用西安市工业企业供需对接平台。为维护网上功能秩序和社会稳定，请自觉遵守中华人民共和国相关法律法规，包括但不限于《全国人大常委会关于维护互联网安全的决定》、《互联网电子公告服务管理规定》、《互联网新闻信息服务管理规定》等有互联网规定和法律法规、实施办法，做到：</text>
+      <text class="text-index">1、不得利用本平台发布、传播含有下列内容的信息：</text>
+      <text class="text-index">（1）损坏国家荣誉和利益的;</text>
+      <text class="text-index">（2）违反国家规定的政治宣传、新闻信息；</text>
+      <text class="text-index">（3）涉及国家秘密、安全的信息；</text>
+      <text class="text-index">（4）散布谣言、色情、赌博、暴力、恐怖、教唆犯罪的信息；</text>
+      <text class="text-index">（5）煽动民族仇恨、民族歧视、破坏民族团结的信息；</text>
+      <text class="text-index">（6）违反国家民族和宗教政策，宣扬邪教和封建迷信的信息；</text>
+      <text class="text-index">（7）妨碍互联网运行安全的信息；</text>
+      <text class="text-index">（8）侵害他人合法权益的信息或其他有损于社会秩序、社会治安、公共道德的信息或内容；</text>
+      <text class="text-index">（9）其他违反法律法规、部门规章或国家政策的内容。</text>
+      <text style="margin-top: 30cpx;">二、服务说明</text>
+      <text class="text-index">1.为了落实国家关于复工复产的相关政策，解决一些企业面临的生产材料、生产设备的采购难题，本平台向西安市工业企业用户提供发布供需信息服务（含产品、服务、解决方案等）。</text>
+      <text class="text-index">2.本平台由用户发布的信息涵盖供给清单、需求清单、供给填报、需求填报等内容。在该平台上，发布信息的企业用户既可以是供给方，也可以是需求方。</text>
+      <text class="text-index">3.鉴于本平台的作用仅限于提供发布信息的机会，但并不负责审核所发布信息的真实性、准确性，亦无法审核发布信息用户的履约能力、资信状况，故而用户在本平台之上所发布信息内容的真实性、准确性和合法性由均由信息发布人负责。</text>
+      <text class="text-index" style="font-weight: bold">4.需要特别说明和注意的是：凡是通过本平台所获取的交易信息，都需要用户自行与发布信息的企业、交易相关方取得联络，并核实其真实性、准确性，理性评估交易安全性、可能性等问题。在全面了解真实情况之后，用户应当自行判断与决定是否要与相对方发生交易。</text>
+      <text style="margin-top: 30cpx;">三、免责声明</text>
+      <text class="text-index">1.所有在本平台发布信息的用户均明确知晓并同意，其使用本平台发布信息服务所存在的风险将完全由其自己承担；因其使用本平台服务而产生的一切后果也由其自己承担，本平台用户不承担任何责任。</text>
+      <text class="text-index">2.所有在本平台浏览信息的用户均明确知晓并同意，本平台用户发布的信息其真实性、准确性等责任全部由发布者承担，本平台的功能仅为发布，并不为上述信息的真实性、准确性等提供任何担保、背书。基于上述信息所发生之交易，其责任将完全由交易双方自行承担，本平台不承担任何责任。</text>
+      <text class="text-index">3.所有发布及获取信息的用户均明确知晓并同意，所有基于本平台信息，或与本平台发布信息相关联而产生之交易，其交易的真实性、安全性、营利性、质量缺陷等，均由交易双方自行负责，本平台并不提供任何交易成功的担保，对于所有交易的结果亦不承担任何形式的责任。所有用户不得以因在本平台发布、获取信息为由，向本平台主张责任。</text>
+      <text class="text-index">4.本平台不担保网络服务一定能满足用户的要求，也不担保网络服务不会中断，对网络服务的及时性、安全性、准确性也都不作担保。</text>
+      <text class="text-index">5.本平台不保证为向用户提供便利而设置的外部链接的准确性、完整性、安全性。同时，对于该等外部链接指向的不由本接平台实际控制的任何网页上的内容， 本平台不承担任何责任。</text>
+      <text class="text-index">6.对于因不可抗力或本平台不能控制的原因造成的网络服务中断或其他缺陷， 本平台不承担任何责任，但将尽力减少因此而给用户造成的损失和影响。</text>
+    </view>
+    <view class="footer">
+      <view class="agrt-box" c-bind:tap="onRadioClick">
+        <view class="{{ checkStyle }}"></view>
+        <text style="padding-left:10cpx;font-size: 28cpx;">阅读并同意《用户服务协议》</text>
+      </view>
+
+      <button class='btn' disabled="{{ check==false }}" disabled-style="background-color:#999;"
+        btn-style="background-color:#01b4fd;height:80cpx;border-radius:40cpx;"
+        c-bind:onclick="onClick">
+        确定
+      </button>
+    </view>
+  </view>
+</template>
+
+<script>
+import {goToPathHandle} from "../../utils/utils";
+
+class UserAgrt   {
+
+  data = {
+    check:false,
+    path:''
+  }
+
+  computed = {
+    checkStyle(){
+      return this.check?'checked':'check'
+    },
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    onRadioClick(){
+      this.check = !this.data.check
+    },
+
+    onClick(){
+      goToPathHandle(this.path)
+    }
+  }
+
+  beforeCreate(query) {
+    this.path = decodeURIComponent(query.path)
+  }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new UserAgrt();
+</script>
+
+<style>
+  .box {
+    width: 100%;
+    height: 100%;
+
+   }
+
+  .text-index{
+    font-size: 28cpx;
+    text-align: justify;
+  }
+
+  .header{
+    padding: 30cpx;
+  }
+
+  .title{
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .content{
+    line-height: 1.8;
+    padding: 30cpx;
+    padding-bottom: 210cpx;
+  }
+
+  .footer{
+    position: fixed;
+    z-index: 999;
+    bottom: 0px;
+    width: 100%;
+    left: 0;
+    border-top: 1px solid #f1f1f1;
+    background-color: #f7f8f9;
+    padding:20cpx 30cpx;
+  }
+
+  .footer .agrt-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  .footer .btn{
+    padding:0;
+    margin-top: 20cpx;
+  }
+
+  .check {
+    position: relative;
+    display: inline-block;
+    width: 36cpx;
+    height: 36cpx;
+    border:1cpx solid #999;
+    border-radius: 50%;
+  }
+
+  .checked {
+    position: relative;
+    display: inline-block;
+    width: 36cpx;
+    height: 36cpx;
+    border-radius: 50%;
+    background: #00b6fd;
+  }
+
+  .checked::after {
+    content: "";
+    position: absolute;
+    left: 8cpx;
+    top: 10cpx;
+    width: 50%;
+    height: 25%;
+    border: 4cpx solid #fff;
+    border-radius: 1cpx;
+    border-top: none;
+    border-right: none;
+    background: transparent;
+    transform: rotate(-45deg);
+  }
+
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {}
+  },
+  "wx": {
+    "navigationBarTitleText": "用户服务协议",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

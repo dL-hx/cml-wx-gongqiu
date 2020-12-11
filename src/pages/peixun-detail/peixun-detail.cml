@@ -1,0 +1,155 @@
+<template>
+  <view class="list">
+    <view class="list-item">
+      <video
+              src="{{videoUrl}}"
+              autoplay="{{false}}"
+              controls="{{true}}"
+              c-bind:start="onStart"
+
+      ></video>
+      <view class="w">
+        <view class="article-title">{{videoTitle}}</view>
+        <view class="source">{{ playCount }} 次观看</view>
+        <view class="article-content">
+            <text>主讲人: {{ speaker }} </text>
+            <text>开始时间: {{ date }} </text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import request from "../../utils/request";
+
+import {duc2W, showToast} from "../../utils/utils";
+import store from "../../store";
+import api from '../../components/api/api' // 引入多态接口
+
+
+class PeixunDetail   {
+
+  data = {
+    bgc:'',
+    date:'',
+    flag:'',
+    speaker:'',
+    playCount:'', // 播放次数
+    text:'',
+    url:'',
+    videoId:'',
+    videoTitle:'',
+    videoUrl:'',
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    async onStart() {
+      const res = await api.getNetworkType()
+      const networkType = res.networkType
+
+      if (networkType != 'wifi' && networkType != 'none'){
+        showToast('正在数据流量下播放,  请注意流量消耗', 3000)
+      }
+
+      await request('/v/log/add', {videoId:this.data.videoId, ...store.getters.getGlobalVUserId}, 'POST')
+    }
+  }
+
+  async beforeCreate(query) {
+    // 展示视频详情页面, 播放视频
+    this.bgc = duc2W(query.bgc)
+    this.date = duc2W(query.date)
+    this.flag = duc2W(query.flag)
+    this.speaker = duc2W(query.speaker)
+    this.text = duc2W(query.text)
+    this.url = duc2W(query.url)
+    this.videoId = duc2W(query.videoId)
+    this.videoTitle = duc2W(query.videoTitle)
+    this.videoUrl = duc2W(query.videoUrl)
+
+    const res = await request('/v/log/count', {videoId: query.videoId}, 'GET')
+    this.playCount = res.data
+  }
+
+  created(query) {
+
+  }
+
+  beforeMount(query) {
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+    console.log('视频隐藏')
+    this.videoUrl = ''
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new PeixunDetail();
+</script>
+
+<style>
+  .list{
+    height: 422cpx;
+  }
+
+  .w{
+    padding:20cpx 30cpx;
+  }
+
+  .list-item video{
+    width: 100%;
+    height: 422cpx;
+  }
+
+  .article-title{
+    font-size: 36cpx;
+    padding-bottom: 0px;
+    font-weight: bold;
+    line-height: 1.5;
+  }
+  .article-content{
+    text-align:justify;
+    line-height: 1.6;
+    font-size: 28cpx;
+  }
+  .source{
+    color: #808080;
+    padding-bottom: 8px;
+    font-size: 24cpx;
+  }
+
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {
+
+    }
+  },
+  "wx": {
+    "navigationBarTitleText": "视频培训",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

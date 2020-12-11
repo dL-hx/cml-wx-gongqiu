@@ -1,0 +1,283 @@
+<template>
+  <view>
+    <view class="header" >
+      <view style="margin-left:30cpx;flex-direction: row;align-items: center;">
+          <image class="user-icon" src="{{morenuserSrc}}"></image>
+          <view>
+            <text style="font-size: 28cpx;color: #ffffff;">{{ fzr }}</text>
+            <text style="font-size: 24cpx;color: rgba(255, 255, 255, .5);">{{companyname}}</text>
+          </view>
+      </view>
+      <view class="wenzi">
+        <!--<image class="code" src="{{ codeSrc }}" c-bind:tap="scanCode"></image>-->
+        <text class="p">获取更多请关注</text>
+        <text class="p">“西安市中小企业</text>
+        <text class="p">服务中心”公众号</text>
+      </view>
+    </view>
+    <c-tab tabs="{{tabs}}"
+          c-bind:tabclick="handleTabTap"
+          active-label="{{activeLabel}}"
+          inline="{{false}}"
+          active-label-style="color:#2c8dff;"
+          line-style="background-color:#2c8dff;"
+    >
+    </c-tab>
+    <view style="border-bottom: 2cpx solid #e8e8e8;width:100%"></view>
+    <c-tab-pane tabs="{{tabs}}" active-label="{{activeLabel}}">
+      <c-tab-pane-item>
+        <view class="one">
+          <my-gongei list="{{ list1 }}"></my-gongei>
+        </view>
+      </c-tab-pane-item>
+      <c-tab-pane-item>
+        <view class="two">
+          <my-xuqiu list="{{ list2 }}"></my-xuqiu>
+        </view>
+      </c-tab-pane-item>
+      <c-tab-pane-item>
+        <view class="three">
+
+        </view>
+      </c-tab-pane-item>
+      <c-tab-pane-item>
+        <view class="four">
+          <my-xuqiu-yixiang></my-xuqiu-yixiang>
+        </view>
+      </c-tab-pane-item>
+      <c-tab-pane-item>
+        <view class="five">
+          <my-gongei-yixiang></my-gongei-yixiang>
+        </view>
+      </c-tab-pane-item>
+    </c-tab-pane>
+  </view>
+</template>
+
+<script>
+import store from "../../store";
+import request from "../../utils/request";
+import {formatDate} from "../../utils/utils";
+import api from '../../components/api/api'
+
+class UserCenter{
+
+  data = {
+    userBannerSrc: "https://wm.source.wiimedia.cn/banner/user-center.png",
+    morenuserSrc: "https://wm.source.wiimedia.cn/images/morenuser.png",
+    noPicSrc: "https://wm.source.wiimedia.cn/images/nodata.png",
+    codeSrc: "https://wm.source.wiimedia.cn/images/code.png",
+
+    tabs:[{
+      label:'我的供应',
+    },{
+      label:"我的需求",
+    },{
+      label:'我的联系',
+    },{
+      label:'需求意向',
+    },{
+      label:'供应意向',
+    }],
+
+    activeLabel:'我的供应',
+    fzr:"",
+    companyname:'',
+
+
+    list1:[],
+    list2:[]
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+
+    handleTabTap(e){
+      this.activeLabel = e.detail.label;
+    },
+
+    scanCode(codeSrc){
+      console.log('111', codeSrc)
+      // api.previewImage({ // 调用多态接口
+      //   urls:[codeSrc]
+      // })
+    }
+  }
+
+  beforeCreate(query) {
+    const gi = store.getters.getGlobalItem
+    // console.log('gi', gi)
+    this.companyname = gi.companyname || '';
+    this.fzr = gi.fzr || '未认证';
+  }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+  }
+
+  async onShow() {
+/*------list1--------*/
+    const res = await request('/t/base/user/supplyList', {issuePerson: store.getters.getGlobalUserId.userId}, 'POST')
+
+    function getStatus1(status) {
+
+      if (status == 1) {
+        return {text: '待审核', bgc: '#b2b2b2', flag: 'ready', status: 1}
+      } else if (status == 2) {
+        return {text: '已通过', bgc: '#00b6fd', flag: 'passed', status: 2}
+      } else {
+        return {text: '已拒绝', bgc: '#fc9664', flag: 'refused', status: 3}
+      }
+    }
+
+    console.log('res========', res)
+    this.list1 = res.data.map(item => {
+      let {productName, companyName, photoUrl, status, issueDate, ...rest} = item
+
+      status = getStatus1(status)
+
+      return {
+        originData: item, // 备份一份原始数据
+
+        url: photoUrl,
+        title: productName,
+        subTitle: companyName,
+        date: formatDate(issueDate),
+        ...status,
+        ...rest
+      }
+    })
+
+
+
+/*------list2--------*/
+    const res2 = await request('/t/base/user/requirementList', {issuePerson: store.getters.getGlobalUserId.userId}, 'POST')
+
+    function getStatus2(status) {
+
+      if (status == 1) {
+        return {text: '待审核', bgc: '#b2b2b2', flag: 'ready', status: 1}
+      } else if (status == 2) {
+        return {text: '已通过', bgc: '#00b6fd', flag: 'passed', status: 2}
+      } else {
+        return {text: '已拒绝', bgc: '#fc9664', flag: 'refused', status: 3}
+      }
+    }
+
+    this.list2 = res2.data.map(item => {
+      let {requirementName, requirementContent, annexUrl,companyName, status, issueDate, ...rest} = item
+
+      status = getStatus2(status)
+
+      return {
+        url:'',
+        originData: item, // 备份一份原始数据
+        title: requirementName,
+        subTitle: companyName,
+        content: requirementContent,
+        fileUrl:annexUrl,
+        fileName:annexUrl.split('/')[annexUrl.split('/').length - 1],
+        date: formatDate(issueDate),
+        ...status,
+        ...rest
+      }
+    })
+
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new UserCenter();
+</script>
+
+<style>
+  .header{
+    height:300cpx;
+    background-image: url(https://wm.source.wiimedia.cn/images/ubanner.png);
+    background-size: 100% 300cpx;
+    background-repeat: no-repeat;
+    background-position-y: top;
+    width:100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header .code{
+    width: 170cpx;
+    height: 180cpx;
+    margin-right:30cpx
+  }
+  .user-icon{
+    width: 160cpx;
+    height: 160cpx;
+    margin-right:20cpx;
+  }
+  .one{
+    height: 1000cpx;
+  }
+
+  .two{
+    height: 1000cpx;
+  }
+
+  .three{
+    height: 1000cpx;
+    background: url('https://wm.source.wiimedia.cn/images/nodata.png') no-repeat center top;
+  }
+
+  .four{
+    height: 1000cpx;
+    /*background: url('https://wm.source.wiimedia.cn/images/nodata.png') no-repeat center top;*/
+  }
+
+  .five{
+    height: 1000cpx;
+    /*background: url('https://wm.source.wiimedia.cn/images/nodata.png') no-repeat center top;*/
+  }
+  .wenzi{
+    flex-direction: column;align-items: center;margin-right:30cpx;
+  }
+  .p{
+    font-size: 24cpx;color:#ffffff;text-align: center;
+  }
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {
+      "c-tab": "cml-ui/components/c-tab/c-tab",
+      "c-tab-pane": "cml-ui/components/c-tab-pane/c-tab-pane",
+      "c-tab-pane-item": "cml-ui/components/c-tab-pane-item/c-tab-pane-item",
+      "my-gongei": "./my-gongei/my-gongei",
+      "my-xuqiu": "./my-xuqiu/my-xuqiu",
+      "my-gongei-yixiang": "./my-gongei-yixiang/my-gongei-yixiang",
+      "my-xuqiu-yixiang": "./my-xuqiu-yixiang/my-xuqiu-yixiang"
+    }
+  },
+  "wx": {
+    "navigationBarTitleText": "用户中心",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

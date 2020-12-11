@@ -1,0 +1,151 @@
+{
+  "mode": "history",
+  "domain": "https://www.chameleon.com",
+  "routes":[
+
+
+
+
+
+
+    {
+      "url": "/",
+      "path": "/pages/index/index",
+      "name": "首页",
+      "mock": "index.php"
+    },
+
+
+    {
+      "url": "/cml/h5/gongei-list",
+      "path": "/pages/gongei-list/gongei-list",
+      "name": "供给清单",
+      "mock": "index.php"
+    },
+
+
+
+
+    {
+      "url": "/cml/h5/gongei-detail",
+      "path": "/pages/gongei-detail/gongei-detail",
+      "name": "供给详情",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/gongei-yixiang",
+      "path": "/pages/gongei-yixiang/gongei-yixiang",
+      "name": "供给意向",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/xuqiu-list",
+      "path": "/pages/xuqiu-list/xuqiu-list",
+      "name": "需求清单",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/xuqiu-detail",
+      "path": "/pages/xuqiu-detail/xuqiu-detail",
+      "name": "需求详情",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/xuqiu-yixiang",
+      "path": "/pages/xuqiu-yixiang/xuqiu-yixiang",
+      "name": "需求意向",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/yixiang-detail",
+      "path": "/pages/yixiang-detail/yixiang-detail",
+      "name": "意向详情",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/renzheng",
+      "path": "/pages/renzheng/renzheng",
+      "name": "个人信息认证",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/gongei",
+      "path": "/pages/gongei/gongei",
+      "name": "供给填报",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/xuqiu",
+      "path": "/pages/xuqiu/xuqiu",
+      "name": "需求填报",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/peixun",
+      "path": "/pages/peixun/peixun",
+      "name": "培训填报",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/user-agrt",
+      "path": "/pages/user-agrt/user-agrt",
+      "name": "用户服务协议",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/more-list",
+      "path": "/pages/more-list/more-list",
+      "name": "工作动态",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/notice-list",
+      "path": "/pages/notice-list/notice-list",
+      "name": "通知公告",
+      "mock": "index.php"
+    },
+
+
+    {
+      "url": "/cml/h5/detail",
+      "path": "/pages/detail/detail",
+      "name": "资讯详情",
+      "mock": "index.php"
+    },
+
+
+    {
+      "url": "/cml/h5/peixun-list",
+      "path": "/pages/peixun-list/peixun-list",
+      "name": "西安市中小企业服务中心培训",
+      "mock": "index.php"
+    },
+
+
+    {
+      "url": "/cml/h5/peixun-detail",
+      "path": "/pages/peixun-detail/peixun-detail",
+      "name": "视频培训",
+      "mock": "index.php"
+    },
+
+    {
+      "url": "/cml/h5/user-center",
+      "path": "/pages/user-center/user-center",
+      "name": "用户中心",
+      "mock": "index.php"
+    }
+  ]
+}

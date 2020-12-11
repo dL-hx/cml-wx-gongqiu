@@ -1,0 +1,131 @@
+<template>
+  <view>
+       <text c-bind:tap="showPicker" class="{{ centerStyle }}"> <block c-if="{{ showIndex }}">{{index}} :</block> {{index!==-1? list[index] : placeholder }}
+       </text>
+       <c-picker
+               c-if="{{ show }}"
+               show="{{ show }}"
+               height="{{500}}"
+               data-name="{{ name }}"
+               data-scroller-height="{{800}}"
+               list="{{ list }}"
+               default-index="{{ defaultIndex }}"
+               header-height="{{ 100 }}"
+               c-bind:cancel="cancel"
+               c-bind:confirm="confirm"
+               c-bind:selectchange="onSelectChange"
+       >
+       </c-picker>
+  </view>
+</template>
+
+<script>
+
+class MPicker {
+
+  props = {
+    list: Array,
+    name: String,
+    index:Number,
+    isCenter:{
+      type:Boolean,
+      default:false
+    },
+    placeholder:{
+      type:String,
+      default: "请选择"
+    },
+    showIndex:{ // 用于展示list, item 的index属性(开发使用)
+      type:Boolean,
+      default: false
+    },
+  }
+
+  data = {
+    defaultIndex:0,
+    show:false
+  }
+
+  computed = {
+    centerStyle(){
+      return this.isCenter?'search-text':''
+    }
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    showPicker(){
+      this.show = true;
+    },
+
+    hidePicker(){
+      this.show = false;
+    },
+
+    cancel() {
+      this.hidePicker()
+    },
+
+    onSelectChange(e) {
+      const value = this.defaultIndex = this.data.defaultIndex = e.detail.index;
+      const name = e.target.dataset.name
+
+      this.$cmlEmit('selectevent',{// 自定义组件的事件的触发机制
+        name:name,
+        value:value
+      })
+    },
+
+    confirm(e) {
+      const value = this.data.defaultIndex
+      const name = e.target.dataset.name
+
+      this.$cmlEmit('confirmevent',{// 自定义组件的事件的触发机制
+        name:name,
+        value:value
+      })
+      this.hidePicker()
+    },
+
+  }
+
+  beforeCreate() {
+
+
+  }
+
+  created() {
+  }
+
+  beforeMount() {
+  }
+
+  mounted() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MPicker();
+</script>
+<style>
+    .search-text{
+        line-height: 80cpx;/* m-form-item 的高度 = 80cpx  */
+    }
+</style>
+<script cml-type="json">
+{
+  "base": {
+    "component": true,
+    "usingComponents": {
+      "c-picker": "cml-ui/components/c-picker/c-picker"
+    }
+  }
+}
+</script>

@@ -1,0 +1,473 @@
+<template>
+  <view class="box">
+    <view class="banner">
+      <image src="{{ bannerSrc }}"></image>
+    </view>
+
+    <view class="container">
+      <view class="title" style="border-radius: 12cpx 12cpx 0 0;">
+        <text>所在区域</text>
+      </view>
+
+     <m-form>
+          <view class="main">
+                <!--
+                <m-form-item label="城市">
+                     <m-picker
+                            list="{{ cities }}"
+                            name="city"
+                            top="175"
+                            z-index="{{ 2 }}"
+                            index="{{ formData.city }}"
+                            c-bind:selectevent="onPickerSelectChange"
+                     >
+                     </m-picker>
+                 </m-form-item>
+                  <m-form-item label="区县/开发区">
+                      <m-picker
+                            list="{{ counties }}"
+                            name="district"
+                            top="185"
+                            index="{{ formData.district }}"
+                            c-bind:selectevent="onPickerSelectChange"
+                      >
+                      </m-picker>
+                  </m-form-item>
+                 <m-form-item label="镇街/园区">
+                     <input type="text" data-name="areaname" value="{{ formData.areaname }}" c-bind:input="onInputChange" placeholder="请输入镇街/园区"/>
+                 </m-form-item>
+                -->
+                <view class="row">
+                    <text>城市</text>
+                    <view class="iselect">
+                        <m-picker
+                              list="{{ cities }}"
+                              name="city"
+                              
+                              z-index="{{ 2 }}"
+                              index="{{ formData.city }}"
+                              c-bind:selectevent="onPickerSelectChange"
+                        >
+                        </m-picker>
+                        <image class="sjx" src="{{ back2Src }}"></image>
+                    </view>
+                </view>
+                <view class="row">
+                    <text>区县/开发区</text>
+                    <view class="iselect">
+                        <m-picker
+                              list="{{ counties }}"
+                              name="district"
+                              index="{{ formData.district }}"
+                              c-bind:selectevent="onPickerSelectChange"
+                        >
+                        </m-picker>
+                        <image class="sjx" src="{{ back2Src }}"></image>
+                    </view>
+                </view>
+                <view class="row">
+                    <text>镇街/园区</text>
+                    <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="text" data-name="areaname" value="{{ formData.areaname }}" c-bind:input="onInputChange" placeholder="请输入镇街/园区"/>
+                </view>
+
+
+
+          </view>
+
+          <view class="title">
+            <text>单位信息</text>
+          </view>
+
+          <view class="main">
+              <view class="row">
+                  <text>工业分类</text>
+                  <view class="iselect">
+                      <m-picker
+                              list="{{ industrial }}"
+                              name="industrialid"
+                              index="{{ formData.industrialid }}"
+                              c-bind:selectevent="onPickerSelectChange"
+                      >
+                      </m-picker>
+                      <image class="sjx" src="{{ back2Src }}"></image>
+                  </view>
+              </view>
+              <view class="row">
+                  <text>单位名称</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="text" data-name="companyname" value="{{ formData.companyname }}" c-bind:input="onInputChange" placeholder="请输入单位名称"/>
+              </view>
+              <view class="column">
+                  <text>营业执照</text>
+                  <view class="shangchuan">
+                    <m-upload-image
+                            name="zz"
+                            imgSrc="{{ formData.zz }}"
+                            c-bind:uploadimgevent="onUploadImageChange"
+                            c-bind:uploadremevent="onUploadRemoveImageChange"
+                    >
+                    </m-upload-image>
+                  </view>
+              </view>
+              <view class="row">
+                  <text>负责人</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="text" data-name="fzr" value="{{ formData.fzr }}" c-bind:input="onInputChange" placeholder="请输入负责人"/>
+              </view>
+              <view class="row">
+                  <text>联系电话</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="number" data-name="tel" value="{{ formData.tel }}" c-bind:input="onInputChange" placeholder="请输入联系电话"/>
+              </view>
+              <view class="row">
+                  <text>验证码</text>
+                  <view class="row" cstyle="border:0px;justify-content: right;">
+                      <input maxlength="{{ 4 }}" cstyle="border:0px;text-align: right;" type="text" data-name="code" value="{{ formData.code }}" c-bind:input="onInputChange" placeholder="请输入验证码"/>
+                      <view slot="extra" style="color:blue">
+                          <text c-bind:tap="onGetCaptchaClick" data-time-count="{{ 60 }}">{{ count?count + "s 重新发送":"获取验证码" }}</text>
+                      </view>
+                  </view>
+              </view>
+
+
+          </view>
+         <button btn-style="background-color:#2c8dff;border-radius: 40cpx;margin:20cpx" c-bind:onclick="handleSubmit">
+             提交
+         </button>
+     </m-form>
+        <c-dialog show="{{ show }}"
+                  type= "confirm"
+                  mask
+                  showIcon="{{ false }}"
+                  title="认证信息提交"
+                  content="确定认证吗?"
+                  clickItem="{{ clickItem }}"
+                  c-bind:show="showHandle"
+                  c-bind:confirm="confirmHandle"
+                  c-bind:cancel="cancelHandle"
+        ></c-dialog>
+    </view>
+  </view>
+</template>
+
+<script>
+import cml from 'chameleon-api'
+import api from '../../components/api/api' // 引入多态接口
+import store from '../../store'; // 在单独构建的版本中辅助函数为 CML 内置的store.mapState
+
+import gongeiData from '../../assets/json/gongei.json';
+import request from "../../utils/request";
+import {checkPhone} from "../../utils/utils";
+
+class Renzheng   {
+
+  data = {
+    bannerSrc:"https://wm.source.wiimedia.cn/banner/banner4.jpg",
+    back2Src: "https://wm.source.wiimedia.cn/images/back2.png",
+
+    cities: gongeiData.data.citiesList,
+    counties: gongeiData.data.countiesList,
+    industrial: gongeiData.data.industrialList,
+
+    show:false,
+
+    count: '',
+    timer: null,
+
+
+    // 表单的数据模型
+    formData:{
+      city:610100,
+      district:'',
+
+      areaname:'',//'镇街/园区',
+
+      industrialid:'',
+
+      companyname:'',//'单位名称',
+
+      zz:'',//'营业执照',
+
+      fzr:'',//'负责人',
+      tel:'',//'1345963221',
+      code:'',//'验证码'
+    },
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    showHandle() {
+      this.show = true;
+    },
+
+    cancelHandle(){
+      this.show = false;
+    },
+
+    onPickerSelectChange({detail}){
+      const { name, value } = detail
+      this.formData[`${name}`] = value// 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+    },
+
+    onInputChange(e){
+      const name = e.target.dataset.name
+      const value = e.detail.value
+      this.formData[`${name}`] = value // this.data.formData 是 obj 对象, 指向这个元素的引用地址
+    },
+
+    onUploadImageChange({detail}){
+      const { name, value } = detail
+      this.formData[`${name}`] = value // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+    },
+
+    onUploadRemoveImageChange({detail}){
+      const { name, value } = detail
+      this.formData[`${name}`] = value// 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+    },
+
+
+    onGetCaptchaClick(e){
+      const phone = this.data.formData.tel // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      checkPhone(phone)
+
+      const TIME_COUNT = e.target.dataset.timeCount
+      if (!this.timer) {
+        this.count = TIME_COUNT;
+
+        request('/sendsms/getcode', { phone: phone },'GET') // 获取短信验证码
+
+        this.timer = setInterval(() => {
+          this.count--;
+          if ( this.count == 0) {
+            clearInterval(this.timer);
+            this.timer = null;
+          }
+        }, 1000)
+      }
+    },
+
+    async confirmHandle(e){ // 收集数据, 提交弹框
+      this.cancelHandle()
+
+      const district = this.data.formData.district // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+
+      if(district.length==0){
+        cml.showToast({
+          message: '请选择区县/开发区',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const areaname = this.data.formData.areaname // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(areaname.length==0){
+        cml.showToast({
+          message: '请输入镇街/园区',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const industrialid = this.data.formData.industrialid // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(industrialid.length==0){
+        cml.showToast({
+          message: '请选择工业类型',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const companyname = this.data.formData.companyname // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(companyname.length==0){
+        cml.showToast({
+          message: '请选择单位名称',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const zz = this.data.formData.zz // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(zz.length==0){
+        cml.showToast({
+          message: '请选择营业执照',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const fzr = this.data.formData.fzr // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(fzr.length==0){
+        cml.showToast({
+          message: '请输入负责人',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const phone = this.data.formData.tel||'' // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(!(/^1[3456789]\d{9}$/.test(phone))){
+        cml.showToast({
+          message: '手机号码有误，请重填',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if( this.data.formData.code.length==0){
+        cml.showToast({
+          message: '请输入验证码',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const res = await request('/t/base/user/update2', {...store.getters.getGlobalUserId, ...this.data.formData}, 'POST')
+
+      const code = res.code
+      const message = res.message
+
+      let str = code !== 200 ? message : '提交成功'
+
+
+
+      if (code == 200) {
+        cml.navigateBack(-1)
+
+        cml.showToast({
+          message: '提交成功',
+          duration: 3000,
+        });
+
+        const xcxCode = await api.login() // 获取小程序 code
+        // 以载荷形式分发
+        await store.dispatch('getOpenId', { code:xcxCode.code })
+      }else {
+        cml.showToast({
+          message: str,
+          duration: 3000,
+        });
+      }
+
+    },
+
+    handleSubmit() {
+      this.showHandle()
+    }
+  }
+
+  beforeCreate(query) {
+   this.formData.tel = query.tel=="null"?'':query.tel
+  }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new Renzheng();
+</script>
+
+<style scoped>
+  .dialog-content{
+    border-radius: 24cpx!important;
+  }
+  .hidden{
+    display: none;
+  }
+
+  .box{
+    width: 100%;
+    height: 100%;
+  }
+
+  .w{
+    padding: 10cpx;
+  }
+
+  .box .banner{
+    height: 300cpx;
+  }
+
+  .box .banner image{
+    width: 100%;
+  }
+
+  .box .container{
+    border-radius: 12cpx 12cpx 0 0;
+    margin-top: -20cpx;
+    background-color: #ffffff;
+  }
+
+  .container .title{
+    background-color: #f6f8f9;
+    padding: 40cpx 30cpx 20cpx 30cpx;
+    color: #a4a4a4;
+  }
+  .container .title>text{
+    font-size: 24cpx;
+  }
+
+  .container .main{
+    background-color: #fff;
+  }
+  .row{
+    flex-direction: row;
+    padding: 0 30cpx;
+    border-bottom: 1px solid #f1f1f1;
+    align-items: center;
+    height: 88cpx;
+    justify-content: space-between;
+  }
+  .iselect{
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: row;
+    height: 88cpx;
+  }
+  .iselect .sjx{ width:22cpx; height:22cpx;margin-left: 8cpx;margin-top:2cpx;}
+  .column{
+    flex-direction:column;
+    padding:30cpx;
+    border-bottom: 1px solid #f1f1f1;
+  }
+.column .shangchuan{margin-top:30cpx;}
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {
+        "m-form":"../../components/m-form/m-form",
+        "m-form-item":"../../components/m-form-item/m-form-item",
+        "m-picker": "../../components/m-picker/m-picker",
+        "m-upload-image": "../../components/m-upload-image/m-upload-image",
+        "c-dialog": "cml-ui/components/c-dialog/c-dialog"
+    }
+  },
+  "wx": {
+    "navigationBarTitleText": "个人信息认证",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

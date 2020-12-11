@@ -1,0 +1,70 @@
+<template>
+  <app  router-config="{{routerConfig}}"></app>
+</template>
+
+<script>
+import store from '../store/index.js'
+import routerConfig from '../router.config.json';
+import api from '../components/api/api' // 引入多态接口
+
+class App {
+  data = {
+    routerConfig
+  }
+  async created(res) {
+    const {code} = await api.login() // 获取小程序 code
+    // 以载荷形式分发
+    await store.dispatch('getOpenId', {code: code})
+    await store.dispatch('getUserDetail')
+  }
+}
+
+export default new App();
+</script>
+
+<style>
+  .loading-text {
+    height: 80cpx;
+    line-height: 80cpx;
+    text-align: center!important;
+    color: #999;
+    font-size: 24cpx;
+  }
+
+  .tel{
+    height:104cpx;
+    display:flex;
+    align-items: center;
+  }
+  .more{
+    width: 90cpx!important;
+    margin-left: 12cpx;
+    height: 46cpx;
+    line-height: 44cpx;
+    background: #fa5d32;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 23cpx;
+    font-size: 24cpx;
+  }
+
+  .default{
+    color:#fff;
+    height: 1000cpx;
+    background: url('https://wm.source.wiimedia.cn/images/nodata.png') no-repeat center top;
+  }
+
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "window": {
+      "backgroundTextStyle": "dark",
+      "navigationBarBackgroundColor": "#343434",
+      "navigationBarTitleText": "供需平台",
+      "navigationBarTextStyle": "white"
+    }
+  }
+}
+</script>

@@ -1,0 +1,279 @@
+<template>
+  <view class="box">
+    <view class="banner">
+      <image src="{{ bannerSrc }}"></image>
+    </view>
+
+    <view class="container">
+     <m-form>
+          <view class="main">
+              <!--
+              <m-form-item label="姓名">
+                  <input type="text" data-name="vname" value="{{ formData.vname }}" c-bind:input="onInputChange" placeholder="请输入姓名"/>
+              </m-form-item>
+
+              <m-form-item label="电话">
+                  <input type="number" data-name="tel" value="{{ formData.tel }}" c-bind:input="onInputChange" placeholder="请输入电话"/>
+              </m-form-item>
+
+              <m-form-item label="职务">
+                  <input type="text" data-name="job" value="{{ formData.job }}" c-bind:input="onInputChange" placeholder="请输入职务"/>
+              </m-form-item>
+              
+              <m-form-item label="单位">
+                  <input type="text" data-name="companyname" value="{{ formData.companyname }}" c-bind:input="onInputChange" placeholder="请输入单位"/>
+              </m-form-item>
+    
+              <m-form-item label="电子邮箱">
+                  <input type="text" data-name="email" value="{{ formData.email }}" c-bind:input="onInputChange" placeholder="请输入电子邮箱"/>
+              </m-form-item>
+              -->
+              <view class="row">
+                  <text>姓名</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="text" data-name="vname" value="{{ formData.vname }}" c-bind:input="onInputChange" placeholder="请输入姓名"/>
+              </view>
+              <view class="row">
+                  <text>电话</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="number" data-name="tel" value="{{ formData.tel }}" c-bind:input="onInputChange" placeholder="请输入电话"/>
+              </view>
+              <view class="row">
+                  <text>职务</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="text" data-name="job" value="{{ formData.job }}" c-bind:input="onInputChange" placeholder="请输入职务"/>
+              </view>
+              <view class="row">
+                  <text>单位</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="text" data-name="companyname" value="{{ formData.companyname }}" c-bind:input="onInputChange" placeholder="请输入单位"/>
+              </view>
+              <view class="row">
+                  <text>电子邮箱</text>
+                  <input cstyle="border:0px;text-align: right;margin-right: -20cpx;" type="text" data-name="email" value="{{ formData.email }}" c-bind:input="onInputChange" placeholder="请输入电子邮箱"/>
+              </view>
+          </view>
+         <button btn-style="background-color:#2c8dff;border-radius: 40cpx;margin:20cpx" c-bind:onclick="handleSubmit">
+             提交
+         </button>
+     </m-form>
+        <c-dialog show="{{ show }}"
+                  type= "confirm"
+                  mask
+                  showIcon="{{ false }}"
+                  title="信息确认提交吗"
+                  content="确定提交吗?"
+                  c-bind:show="showHandle"
+                  c-bind:confirm="confirmHandle"
+                  c-bind:cancel="cancelHandle"
+        ></c-dialog>
+    </view>
+  </view>
+</template>
+
+<script>
+import cml from 'chameleon-api'
+import store from '../../store'; // 在单独构建的版本中辅助函数为 CML 内置的store.mapState
+import request from "../../utils/request";
+import {checkEmail, checkPhone, duc2W, goToPathHandle} from "../../utils/utils";
+
+class Peixun   {
+
+  data = {
+    bannerSrc: "https://wm.source.wiimedia.cn/banner/banner5.jpg",
+    back2Src: "https://wm.source.wiimedia.cn/images/back2.png",
+
+    show:false,
+    path:'',
+
+    // 表单的数据模型
+    formData:{
+      vname:'', // 姓名
+      tel :'',
+      job:'', // 职务
+      companyname:'',//'单位',
+      email:'',//'电子邮箱',
+    },
+
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    showHandle() {
+      this.show = true;
+    },
+
+    cancelHandle(){
+      this.show = false;
+    },
+
+    onInputChange(e){
+      const name = e.target.dataset.name
+      const value = e.detail.value
+      this.formData[`${name}`] = value // this.data.formData 是 obj 对象, 指向这个元素的引用地址
+    },
+
+    async confirmHandle(e){ // 收集数据, 提交弹框
+      this.cancelHandle()
+
+      // 表单校验(修改)
+      const vname = this.data.formData.vname // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(vname.length==0){
+        cml.showToast({
+          message: '请输入姓名',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const phone = this.data.formData.tel||'' // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(!(/^1[3456789]\d{9}$/.test(phone))){
+        cml.showToast({
+          message: '手机号码有误，请重填',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const job = this.data.formData.job||'' // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(job.length==0){
+        cml.showToast({
+          message: '请输入职务',
+          duration: 1000,
+        });
+        return false;
+      }
+
+      const email = this.data.formData.email // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      if(email.length>0&&!(/^\w+@[a-z0-9]+\.[a-z]{2,4}$/.test(email))){
+        cml.showToast({
+          message: '邮箱格式有误，请重填',
+          duration: 1000,
+        });
+        return false;
+      }
+
+
+      const res = await request('/t/base/vuser/update', {...store.getters.getGlobalUserId,...store.getters.getGlobalVUserId, ...this.data.formData}, 'POST')
+
+      const code = res.code
+      const message = res.message
+
+      let str = code !== 200 ? message : '提交成功'
+      cml.showToast({
+        message: str,
+        duration: 3000,
+      });
+
+      code == 200 && goToPathHandle(this.path)
+
+    },
+
+    handleSubmit() {
+      this.showHandle()
+    }
+  }
+
+  beforeCreate(query) {
+    this.path = duc2W(query.path)
+    console.log('query===',this.path)
+/*    const gi= store.getters.getGlobalItem
+    this.formData.street = gi.areaname||''
+    this.formData.companyName = gi.companyname||''
+    this.formData.companyPrincipal = gi.fzr||''
+    this.formData.companyTel = gi.tel||''*/
+  }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new Peixun();
+</script>
+
+<style scoped>
+   .hidden{
+       display: none;
+   }
+  .main{
+    border-radius: 12cpx 12cpx 0 0;
+    margin-top: -20cpx;
+  }
+ .box .banner{
+    height: 300cpx;
+  }
+
+  .box .banner image{
+    width: 100%;
+  }
+
+  .box .container{
+    border-radius: 12cpx 12cpx 0 0;
+    margin-top: -20cpx;
+    background-color: #ffffff;
+  }
+
+  .container .title{
+    background-color: #f6f8f9;
+    padding: 40cpx 30cpx 20cpx 30cpx;
+    color: #a4a4a4;
+  }
+  .container .title>text{
+    font-size: 24cpx;
+  }
+
+  .container .main{
+    background-color: #fff;
+  }
+   .row{
+    flex-direction: row;
+    padding: 0 30cpx;
+    border-bottom: 1px solid #f1f1f1;
+    align-items: center;
+    height: 88cpx;
+    justify-content: space-between;
+  }
+  .iselect{
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: row;
+    height: 88cpx;
+  }
+  .iselect .sjx{ width:22cpx; height:22cpx;margin-left: 8cpx;margin-top:2cpx;}
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {
+        "m-form":"../../components/m-form/m-form",
+        "m-form-item":"../../components/m-form-item/m-form-item",
+        "c-dialog": "cml-ui/components/c-dialog/c-dialog"
+    }
+  },
+  "wx": {
+    "navigationBarTitleText": "培训填报",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

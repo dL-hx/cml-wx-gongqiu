@@ -1,0 +1,182 @@
+<template>
+  <block>
+    <block c-if="{{ list.length>0 }}">
+      <view class="list w">
+        <view class="list-container">
+          <view class="list-item" c-for="{{ list }}" c-for-index="idx" c-for-item="item"  c-bind:tap="itemTapHandle(item)">
+            <view class="list-item-text">
+              <text class="title">{{ item.title }}</text>
+              <!-- m-icon-text -->
+              <text class="subTitle">电话: {{ item.subTitle }}</text>
+              <!-- m-icon-text -->
+              <text class="date">负责人: {{ item.fzr }}</text>
+              <!-- m-icon-text -->
+
+            </view>
+<!--            <image src="{{ item.url ? item.url: defaultSrc }}"></image>-->
+          </view>
+
+        </view>
+      </view>
+    </block>
+    <block c-else>
+      <view class="default"></view>
+    </block>
+  </block>
+</template>
+
+<script>
+import cml from 'chameleon-api'
+import request from "../../../utils/request";
+import store from "../../../store";
+import {formatDate} from "../../../utils/utils";
+import {yixiangType} from "../../../utils/constants";
+
+class MyGongeiYixiang   {
+
+  data = {
+    defaultSrc: 'https://wm.source.wiimedia.cn/images/default.jpg',
+    list:[],
+  }
+
+  computed = {
+  }
+
+  watch  = {
+
+  }
+
+  methods = {
+    goToPathHandle(path , query={}){
+      cml.navigateTo({
+        path,
+        query
+      })
+    },
+    itemTapHandle(item){ // list Item tap事件
+      this.goToPathHandle('/pages/yixiang-detail/yixiang-detail' ,{...item.currentItem })
+    },
+  }
+
+   async beforeCreate(query) {
+     const res = await request('/t/follow/list', {...store.getters.getGlobalUserId, ...yixiangType.gongei})
+
+     this.list = res.data.list.map(item => {
+       let {tel, fzr, remark, require_company, ...rest} = item
+
+       return {
+         currentItem:{
+           company: require_company||'',
+           fzr:fzr||'',
+           tel: tel||'',
+           remark:remark||'',
+         },
+         url: '',
+         title: require_company,
+         subTitle: tel,
+         fzr:fzr,
+         date: '',
+         // ...status,
+         ...rest
+       }
+     })
+
+   }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MyGongeiYixiang();
+</script>
+
+<style>
+  .default{
+    color:#fff;
+    height: 1000cpx;
+    background: url('https://wm.source.wiimedia.cn/images/nodata.png') no-repeat center top;
+  }
+
+
+  .w{
+    margin: 0 30cpx;
+  }
+
+  .list .list-container{
+    height: 500cpx;
+  }
+
+
+  .list .list-item {
+    flex-direction: row;
+    height: 150cpx;
+    /*background-color: pink;*/
+    border-bottom: 1cpx solid #fafafa;
+  }
+
+  .list .list-item-text {
+    flex: 1;
+    padding: 20cpx;
+    height: 45cpx;
+    line-height: 45cpx;
+  }
+
+  .list .list-item image{
+    width: 230cpx;
+    height: 200cpx;
+  }
+
+  .list .list-item-text .subTitle{
+    font-size: 25cpx;
+  }
+
+  .list .list-item-text .date{
+    font-size: 25cpx;
+    color: #999999;
+  }
+
+
+
+
+  .list .list-item-text .status{
+    font-size: 25cpx;
+    color: #fff;
+    width: 100cpx;
+    text-align: center;
+    border-radius: 20cpx;
+  }
+
+
+
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {}
+  },
+  "wx": {
+    "navigationBarTitleText": "index",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

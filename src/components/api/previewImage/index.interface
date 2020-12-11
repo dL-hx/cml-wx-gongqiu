@@ -1,0 +1,43 @@
+<script cml-type="interface">
+
+type Callback = (res ?: any) => void;
+
+//定义事件detail对象的参数
+type ObjDetail = {
+  urls: Array,         //(必填) 需要预览的图片链接列表。2.2.3 起支持云文件ID。
+  current:?String,     // 默认 (urls 的第一张) 当前显示图片的链接
+  success:? Callback,  //      接口调用成功的回调函数
+  fail:? Callback,     //      接口调用失败的回调函数
+  complete:? Callback, //      接口调用结束的回调函数（调用成功、失败都会执行）
+}
+
+interface PreviewImageInterface{
+  previewImage(obj:ObjDetail):void;
+}
+
+</script>
+
+
+
+<script cml-type="wx">
+class Method implements PreviewImageInterface {
+  previewImage(obj) {
+    wx.previewImage({
+      urls: obj.urls,
+      current: obj.current||obj.urls[0],  // 默认 (urls 的第一张) 当前显示图片的链接
+      success: obj.success&&obj.success(),
+      fail: obj.fail&&obj.fail(),
+      complete: obj.complete&&obj.complete(),
+    })
+  }
+}
+
+export default new Method();
+</script>
+
+
+
+
+
+
+

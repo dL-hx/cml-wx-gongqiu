@@ -1,0 +1,159 @@
+<template>
+  <view class="list-item">
+    <!-- block 1    -->
+    <block  c-if="{{ item.url }}">
+      <!-- block 2    -->
+      <block c-if="{{ stringFun  }}">
+        <view class="list-item-text" style="width:67%">
+          <view class="title" style="padding-right:20cpx">{{ item.title }}</view>
+          <view class="deptdate">
+            <text class="dept">{{ item.dept }}</text>
+            <text class="date">{{ item.date }}</text>
+          </view>
+        </view>
+        <image style="width:33%; height:176cpx;" src="{{ item.url }}"></image>
+      </block>
+
+      <!-- block 3    -->
+      <block c-else>
+        <view class="list-item-text" style="width:100%">
+          <view class="title">{{ item.title }}</view>
+          <view class='imglist'>
+            <view class="list-item-imglist" c-for="{{ item.url }}" c-for-index="imgIdx" c-for-item="imgVal">
+              <image src="{{ imgVal }}"></image>
+            </view>
+          </view>
+
+          <view class="deptdate">
+            <text class="dept">{{ item.dept }}</text>
+            <text class="date">{{ item.date }}</text>
+          </view>
+        </view>
+      </block>
+
+    </block>
+
+    <!-- block 4    -->
+    <block c-if="{{ item.url == '' }}">
+      <view class="list-item-text" style="width:100%">
+        <view class="title">{{ item.title }}</view>
+        <view class="desc">{{ item.desc }}</view>
+        <view class="deptdate">
+          <text class="dept">{{ item.dept }}</text>
+          <text class="date">{{ item.date }}</text>
+        </view>
+      </view>
+    </block>
+
+  </view>
+</template>
+
+<script>
+
+class MListItem {
+
+  props = {
+    item: {
+      type: Object,
+      default: {}
+    },
+    url: {
+      type: String,
+      default: ''
+    }
+  }
+
+  data = {
+  }
+
+  computed = {
+    stringFun(obj) {
+      return (typeof this.item.url == 'string')
+    }
+
+  }
+
+  watch  = {
+  }
+
+  methods = {
+  }
+
+  beforeCreate() {
+  }
+
+  created() {
+  }
+
+  beforeMount() {
+  }
+
+  mounted() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MListItem();
+</script>
+<style>
+
+  .list-item {
+    flex-direction: row;
+    border-bottom: 2cpx solid #f1f1f1;
+  }
+
+  .list-item image{
+    width: 100%;
+    height: 176cpx;
+  }
+  .list-item .imglist{
+    flex-direction: row;
+    height:176cpx;
+    justify-content: space-between;
+    margin:16cpx 0;
+  }
+  .list-item .imglist .list-item-imglist{
+    width:33%;
+  }
+  .list-item-text {
+    
+  }
+  .list-item-text .title{
+    font-size: 28cpx;
+    line-height: 1.3;
+    text-align: justify;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    padding-top:20cpx;
+  }
+
+  .list-item-text .desc, .list-item-text .dept, .list-item-text .date{
+    font-size: 25cpx;
+    color: #999999;
+  }
+  .list-item-text .desc{
+    padding-bottom:12cpx;
+    padding-top:12cpx;
+  }
+  .list-item-text .date{
+    margin-left: 10cpx;
+  }
+.deptdate{flex-direction: row; align-items: center;padding-bottom:20cpx;}
+
+</style>
+<script cml-type="json">
+{
+  "base": {
+    "component": true,
+    "usingComponents": {}
+  }
+}
+</script>

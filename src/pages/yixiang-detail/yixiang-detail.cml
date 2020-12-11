@@ -1,0 +1,146 @@
+<template>
+  <view class="box">
+    <view class="banner">
+        <image src="{{ bannerSrc }}"></image>
+    </view>
+
+    <view class="container">
+        <view class="title w">
+            <text>基本信息</text>
+        </view>
+     <m-form>
+          <view class="main w">
+              <m-form-item label="企业名称">
+                  <input disabled type="text" data-name="supplyCompany" value="{{ formData.company }}"  placeholder="请输入企业名称"/>
+              </m-form-item>
+
+              <m-form-item label="联系人">
+                  <input disabled type="text" data-name="fzr" value="{{ formData.fzr }}" placeholder="请输入联系人"/>
+              </m-form-item>
+
+              <m-form-item label="联系电话">
+                  <input disabled type="number" data-name="tel" value="{{ formData.tel }}" placeholder="请输入联系电话"/>
+              </m-form-item>
+
+              <m-form-item label="备注" direction="col">
+                  <textarea disabled cstyle="border:0cpx;font-size:32cpx;" placeholder="请输入备注" data-name="remark" value="{{ formData.remark }}" ></textarea>
+              </m-form-item>
+          </view>
+     </m-form>
+
+    </view>
+  </view>
+</template>
+
+<script>
+
+class YixiangDetail   {
+
+  data = {
+    bannerSrc: "https://wm.source.wiimedia.cn/banner/banner8.jpg",
+    
+    // 表单的数据模型
+    formData:{
+      company:'', // 企业名称
+      fzr :'',
+      tel:'', // 联系电话
+      remark:'',//'备注',
+    },
+
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+
+    
+  }
+
+  beforeCreate(query) {
+    this.formData.company = decodeURIComponent(query.company)||''
+    this.formData.fzr = decodeURIComponent(query.fzr)||''
+    this.formData.tel = decodeURIComponent(query.tel)||''
+    this.formData.remark = decodeURIComponent(query.remark)||''
+  }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new YixiangDetail();
+</script>
+
+<style>
+    .hidden{
+        display: none;
+    }
+
+    .box{
+        width: 100%;
+        height: 100%;
+    }
+
+    .w{
+        padding: 10cpx;
+    }
+
+    .box .banner{
+        height: 300cpx;
+    }
+
+    .box .banner image{
+        width: 100%;
+    }
+
+    .box .container{
+        flex: 1;
+        background-color: #f5f9fc;
+    }
+
+    .container .main{
+        background-color: #fff;
+    }
+
+    .container .title{
+        color: #afafaf;
+    }
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {
+      "m-form":"../../components/m-form/m-form",
+      "m-form-item":"../../components/m-form-item/m-form-item",
+      "c-dialog": "cml-ui/components/c-dialog/c-dialog"
+  }
+  },
+  "wx": {
+    "navigationBarTitleText": "意向客户详情",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

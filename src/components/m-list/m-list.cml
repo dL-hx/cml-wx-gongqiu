@@ -1,0 +1,52 @@
+<template>
+  <view><text>Hello Chameleon!</text></view>
+</template>
+
+<script>
+
+class MList {
+
+  data = {
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+  }
+
+  beforeCreate() {
+  }
+
+  created() {
+  }
+
+  beforeMount() {
+  }
+
+  mounted() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MList();
+</script>
+<style>
+
+</style>
+<script cml-type="json">
+{
+  "base": {
+     "component": true,
+     "usingComponents": {}
+  }
+}
+</script>

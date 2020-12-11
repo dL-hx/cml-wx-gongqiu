@@ -1,0 +1,32 @@
+<script cml-type="interface">
+
+  type Callback = (res: Object) => void;
+
+  interface GetNetworkTypeInterface {
+    getNetworkType(success:Callback): void;
+  }
+
+</script>
+
+
+<script cml-type="wx">
+
+class Method implements GetNetworkTypeInterface {
+  getNetworkType(success) {
+    wx.getNetworkType({
+      success(res) {
+        success&&success(res)
+      }
+    })
+  }
+}
+
+export default new Method();
+</script>
+
+
+
+
+
+
+

@@ -1,0 +1,60 @@
+<script cml-type="interface">
+
+type Callback = (res ?: any) => void;
+
+// 接口定义校验, 校验外部传来的参数 obj 的参数个数及类型
+//定义事件detail对象的参数
+type ObjDetail = {
+  url:? String,         //      开发者服务器地址
+  filePath: String,    //      要上传文件资源的路径 (本地路径)
+  name:?String,         //      文件对应的 key，开发者在服务端可以通过这个 key 获取文件的二进制内容
+  header:?Object,      //      HTTP 请求 Header，Header 中不能设置 Referer
+  formData:?Object,      //     HTTP 请求中其他额外的 form data
+  success: Callback,  //      接口调用成功的回调函数
+  fail:? Callback,     //      接口调用失败的回调函数
+  complete:? Callback, //      接口调用结束的回调函数（调用成功、失败都会执行）
+}
+
+interface UploadFileInterface {
+  uploadFile(obj:ObjDetail):void;
+}
+</script>
+
+
+<script cml-type="wx">
+
+class Method implements UploadFileInterface {
+  uploadFile(obj) {
+    wx.uploadFile({
+      url: "https://v02.upload.wiimedia.top/api/upload",
+      filePath: obj.filePath,    //      要上传文件资源的路径 (本地路径)
+      name:'UploadFile',         //      文件对应的 key，开发者在服务端可以通过这个 key 获取文件的二进制内容
+      header: { //      HTTP 请求 Header，Header 中不能设置 Referer
+        "Content-Type": "multipart/form-data"
+      },
+      formData:{ //     HTTP 请求中其他额外的 form data
+        'UploadFile' : obj.filePath,
+        'appName': 'rengzheng' // 应用appName
+      },
+      success:function(res) {
+        obj.success&&obj.success(res)
+     },
+      fail: function(err) {
+        obj.fail&&obj.fail(err)
+      },
+      complete:function(complete) {
+        obj.complete&&obj.complete(complete)
+      },
+    })
+  }
+}
+
+export default new Method();
+</script>
+
+
+
+
+
+
+

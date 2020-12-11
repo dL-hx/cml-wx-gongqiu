@@ -1,0 +1,108 @@
+<template>
+    <view>
+<!--1-->
+        <view class="item" c-if="{{ direction == 'row' }}">
+            <text>{{ label }} </text>
+            <view class="item-right">
+                <slot></slot>
+                <slot name="extra"></slot>
+            </view>
+        </view>
+<!--2-->
+        <view class="item-col" c-if="{{ direction == 'col' }}">
+            <text>{{ label }}</text>
+            <slot></slot>
+        </view>
+
+    </view>
+</template>
+
+<script>
+
+class MFormItem {
+  props = {
+    label: {
+      type: String,
+      default:'标题'
+    },
+
+    direction:{// "row"|"col"
+      type: String,
+      default:"row"
+    }
+  }
+
+  data = {
+
+  }
+
+  computed = {
+  }
+
+  watch  = {
+
+  }
+
+  methods = {
+
+  }
+
+  beforeCreate() {
+  }
+
+  created() {
+  }
+
+  beforeMount() {
+  }
+
+  mounted() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MFormItem();
+</script>
+<style>
+  .item{
+    height:80cpx;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    border-bottom: 1cpx solid #f5f5f5;
+    margin-bottom:20cpx;
+  }
+
+  .item input{
+    border: 0;
+    text-align: right;
+  }
+
+  .item .item-right{
+      flex-direction: row;
+      align-items: center;
+  }
+
+
+  .item-col{
+      border-bottom: 1cpx solid #f5f5f5;
+  }
+
+  .item-col text{
+      margin-bottom:20cpx;
+  }
+</style>
+<script cml-type="json">
+{
+  "base": {
+    "component": true,
+    "usingComponents": {}
+  }
+}
+</script>

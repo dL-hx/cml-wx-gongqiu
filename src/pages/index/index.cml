@@ -1,0 +1,788 @@
+<template>
+    <view>
+        <view class="parent-box">
+            <image style="width: 100%;position: absolute; z-index: -1" src="{{ bannerSrc }}"></image>
+            <view style="overflow: hidden; width: 100%;height: 80cpx;background-color:#0575d5;">
+                <view class="nav">
+                    <view class="search">
+                        <m-picker
+                                height = "{{ 42 }}"
+                                fontSize="{{28}}"
+                                list="{{ menu }}"
+                                name="menuIdx"
+                                index="{{ menuIdx }}"
+                                color="#fff"
+                                c-bind:selectevent="onPickerSelectChange"
+                        >
+                        </m-picker>
+                        <image class="sjx" src="{{ dsjSrc }}"></image>
+                        <input cstyle="color:#fff" placeholder="请输入..." data-name="search" value="{{ search }}" placer-holder-color="rgba(255, 255, 255, .3)" c-bind:input="onInputChange" c-bind:confirm="searchTapHandle"></input>
+                        <image class="ss" src="{{ searchSrc }}" c-bind:tap="searchTapHandle"></image>
+                    </view>
+                    <view class="user">
+                        <image
+                              src="{{ userSrc }}"
+                              c-bind:tap="handleCustomVisit"
+                        ></image>
+                    </view>
+                </view>
+            </view>
+
+            <view class="container">
+                <view class="icon-list">
+                    <view class="item" c-for="{{ iconList }}" c-for-index="idx" c-for-item="item" data-item="{{ item }}" c-bind:tap="iconTapHandle" >
+                        <image src="{{ item.url }}"></image>
+                        <text>{{ item.text }}</text>
+                    </view>
+                </view>
+            </view>
+            <c-dialog show="{{ show }}"
+                      type= "confirm"
+                      mask
+                      showIcon="{{ false }}"
+                      title="需要认证您的信息"
+                      content="确定认证吗?"
+                      clickItem="{{ clickItem }}"
+                      c-bind:show="showHandle"
+                      c-bind:confirm="confirmHandle"
+                      c-bind:cancel="cancelHandle"
+            ></c-dialog>
+
+            <m-modal show="{{ hasConnect }}"
+                type= "confirm"
+                showIcon="{{ false }}"
+                title="请输入手机号码"
+                mask
+                c-bind:show="showHandleCustom"
+                c-bind:confirm="confirmHandleCustom"
+                c-bind:cancel="cancelHandleCustom"
+            >
+                <view class='tel'><input type="text" cstyle=" border:0;text-align:center; margin-top:12cpx;font-size: 28cpx;" data-name="tel" value="{{ tel }}" c-bind:input="onInputChange" placeholder="请输入手机号码"/></view>
+            </m-modal>
+
+        </view>
+        <div class="tzgg">
+          <div class="box">
+              <div class="news">
+                <h4>{{ noticeTitle }}</h4>
+              </div>
+              <button btn-style="width: 95cpx;margin-left: 12cpx;height: 46cpx;line-height: 44cpx;background: #fa5d32;color: #ffffff;text-align: center;border-radius: 23cpx;font-size: 24cpx;padding: 0;" c-bind:onclick="goToPathHandle('/pages/notice-list/notice-list')">更多</button>
+          </div>
+        </div>
+
+        <view class="list w">
+            <view class="list-nav">
+                <view class="list-nav-title">
+                    <image src="{{ boxSrc }}"></image>
+                    <text>工作动态</text>
+                </view>
+                <view class="list-nav-all"
+                    c-bind:tap="goToPathHandle('/pages/more-list/more-list')">
+                    <text>全部</text>
+                </view>
+            </view>
+
+            <view class="list-container">
+                <refresh-view enablePullUpLoad="{{true}}"
+                              pullingUp="{{pullingUp}}"
+                              c-bind:onPullUpLoad="pullUploadHandle">
+                        <view class="zixunitem" c-for="{{ list }}" c-for-index="idx" c-for-item="item" c-bind:tap="goToPathHandle('/pages/detail/detail', item)">
+                            <view class="list-item-text">
+                                <h3>{{ item.title }}</h3>
+                                <p class="source">{{ item.date }}</p>
+                            </view>
+                            <image src="{{ item.url ? item.url: defaultSrc }}"></image>
+                        </view>
+
+                    <text class="loading-text">{{loadingText}}</text>
+                </refresh-view>
+
+            </view>
+
+        </view>
+
+        <c-loading loading="{{ loading }}" tip="请稍后..."></c-loading>
+    </view>
+</template>
+
+<script>
+  import cml from 'chameleon-api'
+  import store from '../../store'; // 在单独构建的版本中辅助函数为 CML 内置的store.mapState
+  import indexData from '../../assets/json/index.json';
+  import request from "../../utils/request";
+  import {checkPhone, formatDateToYear, dateFormat, showToast} from "../../utils/utils";
+  import api from '../../components/api/api' // 引入多态接口
+
+  import urlConfig from "../../utils/urlConfig";
+  import {channelIdConfig} from "../../utils/constants";
+
+  const PAGE_SIZE = 5
+  // 162 通知公告
+  const getNoticeTitle = function (obj) {
+    request('/t/article/getNewsByType', {
+      pageSize: 1,
+      pageNow: obj.pageNow||1,
+      ...channelIdConfig.tongZhiGongGao
+    },'GET',urlConfig.newsDomain)
+      .then(res=>{
+
+        const data = res.data.map(item=>{
+          const { title} = item
+          return {
+            title: title,
+          }
+        })
+
+        obj.cb&&obj.cb({
+          noticeTitle: data[0].title,
+        })
+
+      })
+  }
+  const loadMore = function (obj) {
+    // 163 工作动态
+    request('/t/article/getNewsByType', {
+      pageSize: PAGE_SIZE,
+      pageNow: obj.pageNow||1,
+      ...channelIdConfig.gongZuoDongTai
+    }, 'GET', urlConfig.newsDomain)
+      .then(res=>{
+      const data = res.data.map(item => {
+        const {images, publishDate, ...rest} = item
+        return {
+          url: images && JSON.parse(images)[0]||'',
+          date: dateFormat(publishDate).substr(0,10),
+          ...rest
+        }
+
+      })
+
+
+      obj.cb&&obj.cb({
+        list: data,
+        total: res.total,
+      })
+    })
+  }
+
+  class Index {
+    data = {
+      show:false,
+
+      loading:false, // Loading Toast加载状态
+
+      hasConnect:false,
+
+      pullingUp: false,
+      loadingText: '加载中...',
+
+      pageNow:1, // 当前的页码
+      total:1, // 列表总数
+
+      userSrc: "https://wm.source.wiimedia.cn/icon/user.png",
+      bannerSrc: "https://wm.source.wiimedia.cn/banner/banner1new.png",
+      searchSrc: "https://wm.source.wiimedia.cn/icon/ss-btn.png",
+      dsjSrc:"https://wm.source.wiimedia.cn/images/s.png",
+      noticeSrc:"https://wm.source.wiimedia.cn/icon/notice.png",
+      boxSrc:"https://wm.source.wiimedia.cn/icon/box.png",
+      defaultSrc: "https://wm.source.wiimedia.cn/images/default.jpg",
+
+      iconList:[
+        {name:"gongei-list",url: "https://wm.source.wiimedia.cn/icon/icon1.png", text:'供给清单',path:'/pages/gongei-list/gongei-list'},
+        {name:"xuqiu-list",url: "https://wm.source.wiimedia.cn/icon/icon2.png", text:'需求清单' ,path:'/pages/xuqiu-list/xuqiu-list'},
+        {name:"gongei",url: "https://wm.source.wiimedia.cn/icon/icon3.png", text:'供给填报',path:'/pages/gongei/gongei'},
+        {name:"xuqiu",url: "https://wm.source.wiimedia.cn/icon/icon4.png", text:'需求填报' ,path:'/pages/xuqiu/xuqiu'},
+       // {name:"peixun-list",url: "https://wm.source.wiimedia.cn/icon/icon5.png", text:'视频培训' ,path:'/pages/peixun-list/peixun-list'},
+      ],
+
+      // list: indexData.data.workList,
+      menu: indexData.data.menu,
+      menuIdx : 1,
+
+
+      clickItem:{}, // 当icon点击时候需要传递的数据
+
+      targetItem:{ // 标定当前点击的选项
+        target:'',// 辅助变量
+        fn:function () {
+
+        }
+      },
+
+      search : '',
+      list: [],
+      noticeTitle:'',
+
+      // 弹框的数据模型
+      tel:'',
+    }
+
+    computed = {// 计算属性数据,也是连接视图层的枢纽
+
+    }
+
+    watch = {
+
+    }
+
+    methods = {
+      showLoading() {
+        this.loading = true;
+      },
+
+      cancelLoading(){
+        this.loading = false;
+      },
+
+      showHandle() {
+        this.show = true;
+      },
+
+      cancelHandle(){
+        this.show = false;
+      },
+
+      showHandleCustom() { // 自定义弹框展示
+       this.hasConnect = true
+      },
+
+      cancelHandleCustom(){// 自定义弹框隐藏
+        this.hasConnect = false
+      },
+
+      setTargetItem(obj){
+        this.targetItem = {
+          ...obj
+        }
+      },
+
+      getTargetItem(){
+        const tgi = this.targetItem
+        return {...tgi}
+      },
+
+      handleCustomVisit() {
+        const me = this
+
+        if(!store.getters.getGlobalTel.tel){
+          me.setTargetItem({
+            target: 'user',
+            fn:function () {// 自定义事件处理函数
+              me.goToPathHandle('/pages/user-center/user-center')
+            }
+          })
+
+          me.showHandleCustom()
+        }else {
+         me.goToPathHandle('/pages/user-center/user-center')
+        }
+
+      },
+
+      onInputChange(e){
+        const name = e.target.dataset.name
+        const value = e.detail.value
+        this[`${name}`] = value
+      },
+
+      onPickerSelectChange({detail}){
+        const { name, value } = detail
+        this[`${name}`] = value// 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+      },
+
+      goToPathHandle(path , query={}){
+        // const opt= e.currentTarget.dataset.opt
+        cml.navigateTo({
+          path,
+          query
+        })
+      },
+
+      handlePickerVisit(){
+        const status = store.getters.getGlobalStatus.status
+
+        let {hasRegist, firstRegist} = { hasRegist:status==3, firstRegist: true };
+
+        if(status==1){ // 跳转认证表单
+          this.showHandle()
+          return ;
+        }
+
+        if(status==2){// 展示信息
+          showToast('信息审核中')
+          return ;
+        }
+
+        if (hasRegist){// 进入用户协议注册页面
+          let { path } = this.clickItem
+          let query = {}
+          if (firstRegist){
+            query.path = path
+            path = '/pages/user-agrt/user-agrt'
+          }
+
+          this.goToPathHandle(path, query)
+          return ;
+        }
+
+        if(status==4){// 展示信息
+          showToast('信息审核不通过')
+          return ;
+        }
+      },
+
+      confirmHandle(e){
+        this.goToPathHandle('/pages/renzheng/renzheng',{tel: store.getters.getGlobalTel.tel})
+        this.cancelHandle()
+      },
+
+      async confirmHandleCustom(e) { // 自定义弹框确认
+        const me = this;
+        me.cancelHandleCustom() // 隐藏自定义框
+        me.showLoading()// 展示Loading Toast
+
+        const phone = me.data.tel // 当做数据修改的时候，只需要在逻辑层修改数据，视图层就会做相应的更新
+
+        if(!(/^1[3456789]\d{9}$/.test(phone))){
+          cml.showToast({
+            message: '手机号码有误，请重填',
+            duration: 1000,
+          });
+          return false;
+        }
+
+        const param = {
+          tel:phone,
+          ...store.getters.getGlobalOpenId,
+          ...store.getters.getGlobalUserId,
+        }
+
+        // 判断当前用户是否已关联 小程序 - 公众号
+        const res = await request('/wx/xsxregitst', param, 'GET')
+        if (res.code == 200){
+          const {code} = await api.login() // 获取小程序 code
+          // 以载荷形式分发
+          await store.dispatch('getOpenId', {code: code})
+
+          await store.dispatch('getUserDetail')
+
+          me.eventHandle()
+          me.cancelLoading()
+        }
+
+      },
+
+      eventHandle(){// 执行事件处理函数
+        const me = this
+        me.getTargetItem().fn()
+      },
+
+      async handleRenZhengForPeixun(listPath) {// 处理培训认证 (视后续情况决定是否放到 store 中 )
+        const res = await request('/wx/getvxcxopen', {...store.getters.getGlobalOpenId})
+
+        const vUserId = res.data.vuserId ||''
+        await store.dispatch('setVUserId', {vUserId: vUserId}) // 把当前vUserId 备份起来
+
+        const vname = res.data.vname ||''
+        const tel = res.data.tel ||''
+
+
+        const hasRenZhengForVideo = (vname.length == 0 || tel.length == 0);
+
+        if (hasRenZhengForVideo) {
+          const formPath = '/pages/peixun/peixun'; // 表单Path
+          this.goToPathHandle(formPath, {path: listPath})
+        } else {
+          this.goToPathHandle(listPath)
+        }
+      },
+
+      iconTapHandle(e){ // 图标按钮tap事件
+        const item = e.currentTarget.dataset.item;
+        const me = this
+
+        me.clickItem = item
+
+        switch (item.name) {
+          case "gongei-list":
+          case "xuqiu-list":
+            this.goToPathHandle(item.path)
+            return true;
+
+          case "peixun-list":
+            this.handleRenZhengForPeixun(item.path)
+            return true;
+
+          case "gongei":
+          case "xuqiu":
+            me.setTargetItem({
+              target: 'other',
+              fn:function () {// 自定义事件处理函数
+                me.handlePickerVisit()
+              }
+            })
+
+            if (!store.getters.getGlobalTel.tel) {
+                me.showHandleCustom()
+                return true;
+            }
+            this.handlePickerVisit()
+            return true;
+        }
+        return false;
+      },
+
+      searchTapHandle(){
+        const { menuIdx ,search }= this.data
+        let path = ''
+        if (menuIdx == 1){
+          path = '/pages/gongei-list/gongei-list'
+        }else {
+          path = '/pages/xuqiu-list/xuqiu-list'
+        }
+        this.goToPathHandle(path, {search: search})
+        this.search = ''
+      },
+
+
+      pullUploadHandle(e) {
+        this.pullingUp = true;
+        let me = this
+        const isAddPage =  me.pageNow < me.total / PAGE_SIZE
+        if (isAddPage){
+          me.loadingText = '加载中...'
+          me.pageNow = me.data.pageNow + 1
+
+          loadMore({
+            pageNow:me.pageNow,
+            cb:function (res) {
+              me.loadingText = '加载完成'
+              me.list = me.list.concat(res.list)
+              me.pullingUp = false;
+            }
+          })
+        }else {// 不增加新页面, 即到底部
+          me.loadingText = '没有更多数据'
+        }
+      }
+    }
+
+
+    onShow() {
+        this.menuIdx = 1
+        this.search = ''
+    }
+
+    beforeCreate(query) {
+      let me = this
+      loadMore({
+        cb:function (res) {
+          me.list = res.list
+          me.total = res.total
+        }
+      })
+
+      getNoticeTitle({
+        cb:function (res) {
+          me.noticeTitle = res.noticeTitle
+        }
+      })
+    }
+
+
+    beforeMount() {
+
+    }
+
+     async created(res) {
+         const {code} = await api.login() // 获取小程序 code
+         // 以载荷形式分发
+         await store.dispatch('getOpenId', {code: code})
+         await store.dispatch('getUserDetail')
+     }
+
+  }
+
+  export default new Index();
+
+</script>
+<style scoped>
+
+    .w{
+        margin: 0 30cpx;
+    }
+
+    .parent-box{
+        position: relative;
+        height: 550cpx;
+        background-image: url(https://wm.source.wiimedia.cn/banner/banner1new.png);
+        background-size: 100% auto;
+        background-repeat: no-repeat;
+        background-position-y: top;
+    }
+    .container {
+        position: absolute;
+        padding: 30cpx;
+        bottom: 0cpx;
+        width: 100%;
+    }
+
+    .icon-list{
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        background-color: #fff;
+        border-radius: 15cpx;
+        box-shadow: 0cpx 0cpx 20cpx #e8e8e8;
+        padding: 30cpx 24cpx;
+    }
+
+    .icon-list .item{
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .icon-list .item image{
+        width: 90cpx;
+        height: 90cpx;
+
+    }
+    .icon-list .item text{
+        font-size: 26cpx;
+        margin-top: 12cpx;
+    }
+
+    .nav {
+        flex-direction: row;
+        margin: 10cpx auto;
+        align-items: center;
+        position: relative;
+        width: 100%;
+    }
+    .nav .user{
+        position: absolute;
+        right: 15px;
+    }
+
+    .nav .user image {
+        width: 44cpx;
+        height: 44cpx;
+    }
+
+    .nav .search {
+        flex-direction: row;
+        border-radius: 30cpx;
+        background-color: rgba(255, 255, 255, .3);
+        height: 60cpx;
+        align-items: center;
+        padding-left:15cpx;
+        padding-right:15cpx;
+        width: 68%;
+        margin:auto;
+    }
+
+    .nav .search input {
+        height: 50cpx;
+        background-color: transparent;
+        border: 0;
+        font-size: 28cpx;
+    }
+
+    .nav .search image.ss {
+        margin: 8cpx;
+        width: 42cpx;
+        height: 42cpx;
+    }
+    .nav .search image.sjx {
+        margin: 8cpx;
+        width: 24cpx;
+        height: 24cpx;
+    }
+    .notice{
+        position: relative;
+        height: 140cpx;
+        color: #fff;
+        align-items: center;
+    }
+
+    .notice image{
+        height: 90cpx;
+        width: 90%;
+    }
+
+    .notice .title{
+        position: absolute;
+        top: 50%;
+        left: 22%;
+        margin-top: -30cpx;
+    }
+
+    .notice button{
+        position: absolute;
+        top: 50%;
+        right: 10%;
+        margin-top: -30cpx;
+    }
+
+    .list-nav {
+        height: 65cpx;
+        /*background-color: pink;*/
+        flex-direction: row;
+        justify-content:space-between;
+        align-items: center;
+        border-bottom: 1px solid #f7f8f9;
+        padding: 0 30cpx 10px 30cpx;
+        margin-left: -30cpx;
+        margin-right: -30cpx;
+    }
+
+    .list-nav .list-nav-title{
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    .list-nav .list-nav-title image{
+        width: 32cpx;
+        height: 32cpx;
+        margin: 0 10cpx;
+    }
+
+    .list-nav .list-nav-title text{
+        font-size: 36cpx;
+    }
+
+    .list-nav .list-nav-all text{
+        color: #808080;
+        font-size:28cpx;
+    }
+
+    .list .list-container{
+      padding: auto 30cpx;
+    }
+    .zixunitem{
+      display: flex;
+      flex-direction: row;
+      height:196cpx;
+      overflow: hidden;
+      border-bottom: 0.0625rem solid #f5f5f5;
+      padding: 30cpx 0;
+    }
+    .zixunitem .list-item-text{
+      width:67%;
+      height: 136cpx;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .zixunitem h3{
+      font-size: 28cpx;
+      line-height: 1.3;
+      text-align: justify;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      padding-right: 16cpx;
+    }
+    .zixunitem .source {
+      font-size: 11px;
+      color: #999999;
+      padding-top: 0.625rem;
+      margin: 0px;
+      white-space: nowrap;
+      padding-bottom: 5px;
+    }
+    .zixunitem image{
+      width:33%;
+      height:auto;
+      min-height: 136cpx;
+    }
+    .sousuo {
+    position: absolute;
+    background-color: rgba(0, 0, 0, .12);
+    height: 90cpx;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+.sousuo .form1 {
+    padding: 0 30cpx;
+    display: flex;
+    align-items: center;
+    position: relative;
+} 
+.sousuo form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: rgba(255, 255, 255, .3);
+    margin-top: 13cpx;
+    border-radius: 30cpx;
+    width: 80%;
+    position: relative;
+    height: 60cpx;
+    margin-left: 10%;
+    margin-right: 10%;
+    position: relative;
+}
+.ss_btn{
+    height: 32cpx;
+    width: auto;
+    min-width: 32cpx;
+    position: absolute;
+    right: 30cpx;
+}
+.sousuo .user {
+    height: 44cpx;
+    width: auto;
+    min-width: 42cpx;
+    margin-top: 20cpx;
+    position: absolute;
+    right: 30cpx;
+}
+
+.tzgg{
+    padding:0px 30cpx 40cpx 30cpx;
+}
+.tzgg .box{
+    height: 95cpx;
+    background-image: url(https://wm.source.wiimedia.cn/images/tzgg.png);
+    background-size: 100% 100%;
+    padding: 24cpx 24cpx 0cpx 136cpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tzgg .box .news{
+    color: #ffffff;
+    padding: 0px;
+    width: 80%;
+}
+.tzgg .box .news h4{
+    font-size: 28cpx;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    width:420cpx;
+    -webkit-line-clamp: 1;
+}
+</style>
+<script cml-type="json">
+  {
+     "base": {
+        "usingComponents": {
+          "c-dialog": "cml-ui/components/c-dialog/c-dialog",
+          "m-modal": "../../components/m-modal/m-modal",
+          "m-picker": "../../components/m-picker/m-picker",
+          "c-loading": "cml-ui/components/c-loading/c-loading"
+        }
+     }
+  }
+</script>

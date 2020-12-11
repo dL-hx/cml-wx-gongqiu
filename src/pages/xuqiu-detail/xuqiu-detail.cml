@@ -1,0 +1,313 @@
+<template>
+  <view>
+    <text class="article-title">{{ title }}</text>
+    <view class="row">
+      <text style="margin-right: 30cpx;font-size: 24cpx;">{{ category }}</text>
+      <text style="font-size: 24cpx;">信息有效期: {{ validTime }}</text> 天
+    </view>
+
+    <view class="w">
+      <text class="article-content">{{ content }}</text>
+      <image c-if="{{imgSrc}}" class="article-img" src="{{ imgSrc }}"></image>
+    </view>
+
+    <view class="row w article-annex" c-if="{{fileName}}">
+      <text>附件:</text>
+      <text style="color: blue" c-bind:tap="preViewImg(fileUrl)">{{ fileName }}</text>
+    </view>
+
+
+    <view class="article-footer">
+      <p style="margin-top:0cpx">
+          <text>联系单位</text>
+          <a c-bind:tap="searchCompanyHandle">{{ company }}</a>
+      </p>
+      <p>
+          <text>所属区域</text>
+          <text>{{ area }} </text>
+      </p>
+      <p>
+          <text>单位地址</text>
+          <text>{{ address }}</text>
+      </p>
+      <p>
+          <text>联系方式 </text>
+          <a c-bind:tap="makePhoneCall(userPhone)" style="flex-direction: row;">
+              <text>{{ userName }}</text>
+              <text> {{ userPhone }} </text>
+          </a>
+      </p>
+    </view>
+
+<!-- m-custom-button   -->
+    <block c-if="{{ isLook }}">
+      <view class="custom-button" c-bind:tap="goToPathHandle('/pages/gongei-yixiang/gongei-yixiang', currentItem)">
+          <text>我有</text>
+          <text>供应</text>
+      </view>
+    </block>
+<!-- m-custom-button   -->
+
+
+
+  </view>
+</template>
+
+<script>
+  import cml from 'chameleon-api'
+  import request from "../../utils/request";
+  import {trimAllBlank} from "../../utils/utils";
+  import api from '../../components/api/api' // 引入多态接口
+  import urlConfig from "../../utils/urlConfig";
+  import store from '../../store'; // 在单独构建的版本中辅助函数为 CML 内置的store.mapState
+
+  class XuqiuDetail   {
+
+    data = {
+      isLook:true,// 是否是查看
+
+      title:'',
+      content:'',
+      imgSrc:'',
+      company:'',
+      area:'',
+      address:'',
+
+      userName:'',
+      userPhone:'',
+      validTime:'',
+      category:'',
+
+      fileName:'',
+      fileUrl:'',
+
+      currentItem:{} // 当前页面需要向下传递的Item
+
+    }
+
+    computed = {
+    }
+
+    watch  = {
+    }
+
+    methods = {
+      preViewImg(fileUrl){
+        api.previewImage({ // 调用多态接口
+          urls:[fileUrl]
+        })
+      },
+
+      makePhoneCall(phoneNumber){
+        api.makePhoneCall({
+          phoneNumber: phoneNumber
+        })
+      },
+
+      goToPathHandle(path , query={}){
+        // const opt= e.currentTarget.dataset.opt
+        cml.navigateTo({
+          path,
+          query
+        })
+      },
+
+      searchCompanyHandle(){
+        const me = this
+        const company = me.data.company;
+
+        company.length!==0&&me.goToPathHandle('/pages/xuqiu-list/xuqiu-list', {search: company})
+      },
+
+      onShareAppMessage(ops) {
+        const me = this
+        // console.log('me.currentItem.userId', me.currentItem.userId)
+        const params = `?isZhuanFa=${true}&requirementId=${me.requirementId}&title=${me.title}&url=${me.imgSrc}&subTitle=${me.currentItem.requireCompany}&issuePerson=${me.currentItem.userId}`
+
+        return {
+          title: me.title,
+          path: 'pages/xuqiu-detail/xuqiu-detail'+ params,
+          success: function (res) {
+            // 转发成功
+            console.log("转发成功:" + JSON.stringify(res));
+          },
+          fail: function (res) {
+            // 转发失败
+            console.log("转发失败:" + JSON.stringify(res));
+          }
+        }
+      }
+
+    }
+
+    async beforeCreate(query) {
+      if (query.isLook) this.isLook = JSON.parse(query.isLook) // 从个人中心来的flag,  用于决定是否展示, 需求供应按钮
+
+      const requirementId = query.requirementId
+      this.requirementId = requirementId
+
+      const res =  await request('/requirement/detail', { requirementId },'GET')
+
+      function getCurrentUserIdSync() {
+        return (!query.issuePerson || query.issuePerson == "null") ? '' : decodeURIComponent(query.issuePerson)
+      }
+
+      if (query.isZhuanFa) {
+        const {code} = await api.login() // 获取小程序 code
+        // 以载荷形式分发
+        await store.dispatch('getOpenId', {code: code})
+      }
+
+      this.currentItem.userId = getCurrentUserIdSync()
+      // 转发后修改供给意向 的 followUserId
+      this.currentItem.followUserId= store.getters.getGlobalUserId.userId
+
+      this.currentItem.followId = decodeURIComponent(requirementId)||''
+      this.currentItem.requireCompany = decodeURIComponent(query.subTitle)||''
+
+      const info = res.data.info.requirementInfo
+
+      this.title = decodeURIComponent(query.title)  || ''
+      this.imgSrc = decodeURIComponent(query.url) || ''
+
+      this.content = trimAllBlank(info.requirementIntroduce) || ''
+
+      this.company = info.companyName || ''
+      this.address = info.companyAddress|| ''
+      this.category = info.industrialName || ''
+      this.validTime = info.period || ''
+
+
+      let annexUrl = info.annexUrl;
+      this.fileName = annexUrl&&(annexUrl.split('/')[annexUrl.split('/').length - 1] ) || ''
+      this.fileUrl = annexUrl&& (annexUrl.indexOf('http:')==-1?urlConfig.imgDomain + annexUrl:annexUrl) || ''
+
+      if (query.isLook){
+        let fileUrl = decodeURIComponent(query.fileUrl);
+        this.fileName = fileUrl&&(fileUrl.split('/')[fileUrl.split('/').length - 1] )|| ''
+        this.fileUrl = fileUrl|| ''
+      }
+
+      this.userName = info.companyPrincipal || ''
+      this.userPhone = info.companyTel || ''
+      this.area = (info.provinceName||'') + (info.countyName||'') + (info.street||'')
+    }
+
+    created(query) {
+      api.showShareMenu() // 多态方法的调用
+    }
+
+    beforeMount(query) {
+
+    }
+
+    onShow() {
+    }
+
+    mounted() {
+    }
+
+    onHide() {
+    }
+
+    beforeDestroy() {
+    }
+
+    destroyed() {
+    }
+  }
+
+  export default new XuqiuDetail();
+</script>
+
+<style>
+  .custom-button {
+    position: fixed;
+    bottom:180cpx;
+    right: 30cpx;
+    width:100cpx;
+    height:100cpx;
+    border-radius: 50%;
+    background-color:#ffa500;
+    color:#fff;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 0px 50cpx 0px rgba(0,0,0,0.5);
+  }
+  .custom-button>text{
+    line-height:32cpx;
+    font-size: 24cpx;
+  }
+
+  .w{
+    margin: 0 30cpx;
+  }
+  .row{
+    flex-direction: row;
+    align-items: center;
+    font-size: 24cpx;
+    color: #999;
+    padding: 20cpx 30cpx;
+    margin: 0;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .article-title{
+    padding: 20cpx 30cpx;
+    font-size: 36cpx;
+    padding-bottom: 0px;
+    font-weight: bold;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .article-content{
+    text-align:justify;
+    line-height: 1.8;
+    font-size: 28cpx;
+  }
+
+  .article-img{
+    width: 100%;
+  }
+
+  .article-footer {
+    margin: 30cpx;
+    padding: 30cpx;
+    border: 2cpx dashed #e1e1e1;
+    border-radius: 15cpx;
+    flex-direction: column;
+    justify-content: start;
+    align-items: flex-start;
+  }
+  .article-footer p{
+    margin-top: 16cpx;
+    
+  }
+  .article-footer>p text,
+  .article-footer>p a{font-size: 28cpx;}
+  .article-footer a{color:blue;}
+  .article-footer>p>text:nth-of-type(1){
+    color: #999999;
+  }
+  .article-annex{
+    margin: 30cpx 0;
+    
+  }
+</style>
+
+<script cml-type="json">
+  {
+    "base": {
+    "usingComponents": {}
+  },
+    "wx": {
+      "navigationBarTitleText": "需求详情",
+      "backgroundTextStyle": "dark",
+      "backgroundColor": "#E2E2E2"
+    }
+  }
+</script>

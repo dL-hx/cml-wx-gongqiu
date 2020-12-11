@@ -1,0 +1,190 @@
+<template>
+  <view class="list w">
+    <view class="list-container">
+      <refresh-view enablePullUpLoad="{{true}}"
+
+                    pullingUp="{{pullingUp}}"
+                    c-bind:onPullUpLoad="pullUploadHandle">
+
+      <view c-for="{{ list }}" c-for-index="idx" c-for-item="item"  c-bind:tap="goToPathHandle('/pages/detail/detail', item)">
+        <m-list-item item="{{ item }}" url=""></m-list-item>
+      </view>
+
+        <text class="loading-text">{{loadingText}}</text>
+      </refresh-view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import cml from 'chameleon-api'
+  import indexData from '../../assets/json/index.json';
+  import request from "../../utils/request";
+  import urlConfig from "../../utils/urlConfig";
+  import {dateFormat, formatDateToYear, isEmptyArray, trimAllBlank} from "../../utils/utils";
+  import {channelIdConfig} from "../../utils/constants";
+
+  const PAGE_SIZE = 6
+
+  const loadMore = function (obj) {
+
+    const getUrl = images => { // get Detailed Picture
+      let url = ''
+
+      let parse = (images && JSON.parse(images))||'';
+
+      if (!isEmptyArray(parse)) {
+        url = parse.length >= 3 ? parse.splice(0, 3) : parse[0];
+      }
+
+      return url;
+    };
+
+    request('/t/article/getNewsByType', {
+      pageSize: PAGE_SIZE,
+      pageNow: obj.pageNow||1,
+      ...channelIdConfig.gongZuoDongTai
+    }, 'GET', urlConfig.newsDomain)
+            .then(res=>{
+              const data = res.data.map(item=>{
+                const { images,publishDate, articleAbstract,source, ...rest} = item
+
+                let url = getUrl(images)
+
+                return {
+                  url: url,
+                  date: dateFormat(publishDate).substr(0,10),
+                  desc:trimAllBlank(articleAbstract).substr(0, 70) + '...',
+                  dept:source,
+                  ...rest
+                }
+              })
+
+              obj.cb&&obj.cb({
+                list: data,
+                total: res.total,
+              })
+
+            })
+  }
+
+  class MoreList   {
+
+  data = {
+    // list:indexData.data.moreList
+    list:[],
+
+
+    pullingUp: false,
+    loadingText: '加载中...',
+
+    pageNow:1, // 当前的页码
+    total:1, // 列表总数
+
+  }
+
+  computed = {
+
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    goToPathHandle(path , query={}){
+      // const opt= e.currentTarget.dataset.opt
+      cml.navigateTo({
+        path,
+        query
+      })
+    },
+
+    pullUploadHandle(e) {
+      this.pullingUp = true;
+
+      let me = this
+      const isAddPage =  me.pageNow < me.total / PAGE_SIZE
+      if (isAddPage){
+        me.loadingText = '加载中...'
+        me.pageNow = me.data.pageNow + 1
+
+        loadMore({
+          pageNow:me.pageNow,
+          cb:function (res) {
+            me.loadingText = '加载完成'
+            me.list = me.list.concat(res.list)
+            me.pullingUp = false;
+          }
+        })
+      }else {
+        me.loadingText = '没有更多数据'
+      }
+    }
+
+  }
+
+  beforeCreate(query) {
+
+    let me = this
+    loadMore({
+      cb:function (res) {
+        me.list = res.list
+        me.total = res.total
+      }
+    })
+
+  }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MoreList();
+</script>
+
+<style>
+
+  .w{
+    margin: 0 30cpx;
+  }
+
+  .list .list-container{
+    /*height: 500cpx;*/
+    /*background-color: yellow;*/
+  }
+
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {
+      "m-list-item":"../../components/m-list-item/m-list-item"
+    }
+  },
+  "wx": {
+    "navigationBarTitleText": "工作动态",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

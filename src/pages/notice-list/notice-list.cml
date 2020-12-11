@@ -1,0 +1,232 @@
+<template>
+  <view class="list w">
+    <view class="list-container">
+      <refresh-view enablePullUpLoad="{{true}}"
+                    pullingUp="{{pullingUp}}"
+                    c-bind:onPullUpLoad="pullUploadHandle">
+        <view class="list-item" c-for="{{ list }}" c-for-index="idx" c-for-item="item"  c-bind:tap="goToPathHandle('/pages/detail/detail', item)" style="padding:20cpx 0;">
+
+        <!-- block 1    -->
+        <block  c-if="{{ item.url.length>0 }}">
+          <view class="list-item-text" style="width:67%">
+            <view class="title"style="padding-right:12cpx">{{ item.title }}</view>
+            <view class="deptdate"style="padding-right:12cpx;padding-top:16cpx">
+              <text class="dept">{{ item.dept }}</text>
+              <text class="date">{{ item.date }}</text>
+            </view>
+          </view>
+          <image style="width:33%; height:136cpx;" src="{{ item.url.length>0 ? item.url: defaultSrc }}"></image>
+        </block>
+
+        <!-- block 2    -->
+        <block c-else>
+          <view class="list-item-text" style="width:100%">
+            <view class="title">{{ item.title }}</view>
+            <view class="desc">{{ item.desc }}</view>
+            <view class="deptdate">
+              <text class="dept">{{ item.dept }}</text>
+              <text class="date">{{ item.date }}</text>
+            </view>
+          </view>
+        </block>
+
+      </view>
+
+        <text class="loading-text">{{loadingText}}</text>
+      </refresh-view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import cml from 'chameleon-api'
+  import indexData from '../../assets/json/index.json';
+  import urlConfig from "../../utils/urlConfig";
+  import request from "../../utils/request";
+  import {dateFormat, formatDateToYear, trimAllBlank} from "../../utils/utils";
+  import {channelIdConfig} from "../../utils/constants";
+
+  const PAGE_SIZE = 10
+
+  const loadMore = function (obj) {
+
+    request('/t/article/getNewsByType', {
+      pageSize: PAGE_SIZE,
+      pageNow: obj.pageNow||1,
+      ...channelIdConfig.tongZhiGongGao
+    },'GET',urlConfig.newsDomain)
+            .then(res=>{
+
+              const data = res.data.map(item=>{
+                const { images,publishDate,title, articleAbstract, source, ...rest} = item
+                return {
+                  url: images&&JSON.parse(images)[0],
+                  date: dateFormat(publishDate).substr(0,10),
+                  title:title.length>40? title.substr(0, 40) : title,
+                  desc:trimAllBlank(articleAbstract).substr(0, 45) ,
+                  dept:source,
+                  ...rest
+                }
+              })
+
+              obj.cb&&obj.cb({
+                list: data,
+                total: res.total,
+              })
+
+            })
+  }
+
+  class NoticeList   {
+
+    data = {
+      // list:indexData.data.noticeList
+      list:[],
+      defaultSrc: "https://wm.source.wiimedia.cn/images/default.jpg",
+
+
+      pullingUp: false,
+      loadingText: '加载中...',
+
+      pageNow:1, // 当前的页码
+      total:1, // 列表总数
+
+
+    }
+
+    computed = {
+    }
+
+    watch  = {
+    }
+
+    methods = {
+      goToPathHandle(path , query={}){
+        // const opt= e.currentTarget.dataset.opt
+        cml.navigateTo({
+          path,
+          query
+        })
+      },
+
+      pullUploadHandle(e) {
+        this.pullingUp = true;
+
+        let me = this
+        const isAddPage =  me.pageNow < me.total / PAGE_SIZE
+        if (isAddPage){
+          me.loadingText = '加载中...'
+          me.pageNow = me.data.pageNow + 1
+
+          loadMore({
+            pageNow:me.pageNow,
+            cb:function (res) {
+              me.loadingText = '加载完成'
+              me.list = me.list.concat(res.list)
+              me.pullingUp = false;
+            }
+          })
+        }else {
+          me.loadingText = '没有更多数据'
+        }
+      }
+
+
+    }
+
+    beforeCreate(query) {
+      let me = this
+      loadMore({
+        cb:function (res) {
+          me.list = res.list
+          me.total = res.total
+        }
+      })
+    }
+
+    created(query) {
+
+    }
+
+    beforeMount(query) {
+
+    }
+
+    onShow() {
+    }
+
+    mounted() {
+    }
+
+    onHide() {
+    }
+
+    beforeDestroy() {
+    }
+
+    destroyed() {
+    }
+  }
+
+  export default new NoticeList();
+</script>
+
+<style>
+  .loading-text {
+    height: 80cpx;
+    line-height: 80cpx;
+    text-align: center;
+    color: #999;
+    font-size: 24cpx;
+  }
+  .w{
+    margin: 0 30cpx;
+  }
+  .list .list-item {
+    flex-direction: row;
+    border-bottom: 1cpx solid #fafafa;
+  }
+  .list .list-item-text {
+  }
+  .list-item-text .title{
+    font-size: 28cpx;
+    line-height: 1.3;
+    text-align: justify;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .list .list-item-text .desc, .list .list-item-text .dept, .list .list-item-text .date{
+    font-size: 25cpx;
+    color: #999999;
+  }
+  .list-item-text .desc{
+    padding-bottom:12cpx;
+    padding-top:12cpx;
+  }
+  .list .list-item-text .date{
+    margin-left: 10cpx;
+  }
+  .list-item-text .date{
+  }
+  .list .list-item image{
+    width: 100%;
+    height: 136cpx;
+  }
+.deptdate{flex-direction: row; align-items: center;}
+</style>
+
+<script cml-type="json">
+  {
+    "base": {
+    "usingComponents": {}
+  },
+    "wx": {
+    "navigationBarTitleText": "通知公告",
+            "backgroundTextStyle": "dark",
+            "backgroundColor": "#E2E2E2"
+    }
+  }
+</script>

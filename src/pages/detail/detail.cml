@@ -1,0 +1,123 @@
+<template>
+  <view class="article">
+    <text class="article-title">{{ title }}</text>
+    <view class="article-content">
+      <m-rich-text nodes="{{ content }}"> </m-rich-text>
+    </view>
+  </view>
+</template>
+
+<script>
+import cml from 'chameleon-api'
+import api from '../../components/api/api'
+import request from "../../utils/request";
+import urlConfig from "../../utils/urlConfig"; // 引用多态方法
+
+
+class Detail   {
+
+  data = {
+    title:'',
+    content: '',
+    articleId:''
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+
+
+    onShareAppMessage(ops) {
+      const me = this
+      return {
+        title: me.title,
+        path: `pages/detail/detail?title=${me.title}&content=${me.content}&articleId=${me.articleId}`,
+        success: function (res) {
+          // 转发成功
+          console.log("转发成功:" + JSON.stringify(res));
+        },
+        fail: function (res) {
+          // 转发失败
+          console.log("转发失败:" + JSON.stringify(res));
+        }
+      }
+    }
+
+  }
+
+  async beforeCreate(query) {
+    this.title = decodeURIComponent(query.title) || ''
+    const articleId = this.articleId = decodeURIComponent(query.articleId) || ''
+
+    const res = await request('/t/article/newsinfo', {articleId: articleId}, 'GET', urlConfig.newsDomain)
+
+    this.content =res.data.content
+            .replace(/style=""/g, '')
+            .replace(/=""/g, '')
+            .replace(/align/g, '')
+            .replace(/class/g, '')
+            .replace(/color/g, '')
+            .replace(/style/g, '')
+            .replace(/alt/g, '')
+  }
+
+  created(query) {
+    api.showShareMenu() // 多态方法的调用
+  }
+
+  beforeMount(query) {
+
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new Detail();
+</script>
+
+<style>
+  .article-title{
+    padding: 20cpx 30cpx 0cpx;
+    font-size: 36cpx;
+    font-weight: bold;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+   .article-content{
+     padding: 0 30cpx;
+   }
+
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {
+      "m-rich-text": "../../components/m-rich-text/m-rich-text"
+     }
+  },
+  "wx": {
+    "navigationBarTitleText": "资讯详情",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

@@ -1,0 +1,167 @@
+<template>
+  <view class="avatar-uploader"
+        data-name="{{ name }}"
+        c-bind:tap="onBtnClicked">
+    <view data-name="{{ name }}" class="{{ hasAddIconClass }}" c-bind:tap="onBtnClicked">+</view>
+    <image
+           src="{{ imgSrc }}"
+           data-name="{{ name }}"
+           c-bind:tap="onBtnClicked"
+           class="{{ hasImgClass }}"
+    >
+    </image>
+    <view data-name="{{ name }}" class="{{ hasRemoveIconClass }}" c-bind:tap="onRemoveBtnClicked">x</view>
+  </view>
+</template>
+
+<script>
+import cml from 'chameleon-api'
+import api from '../api/api.js'
+
+function getImgUrl(str) {
+  if (str && str.length != 0) {
+    let url = JSON.parse(str).url;
+    url =  (url.indexOf('http://') != -1 ? '' : `http://`) + url
+    return url
+  }
+  return '';
+}
+
+class MUploadImage {
+
+  props = {
+    name: String,
+    imgSrc : String,
+  }
+
+  data = {
+  }
+
+  computed = {
+    hasAddIconClass(){ // 放入计算属性, 动态CSS
+      return this.imgSrc?'hidden':'addIcon'
+    },
+
+
+    hasRemoveIconClass(){
+      return this.imgSrc?'removeIcon':'hidden'
+    },
+
+
+    hasImgClass(){
+      return this.imgSrc?'show':'hidden'
+    },
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    onBtnClicked(e) { // 图片上传按钮点击
+      const me = this
+      const name = e.target.dataset.name
+      cml.chooseImage({
+        type: "choice"
+      }).then(res => {
+        const tempFilePaths = res.tempFilePaths[0];
+        api.uploadFile({ // 多态接口调用
+          filePath: tempFilePaths,
+          success(res) {
+            const imgSrc = getImgUrl(res.data)
+            me.$cmlEmit('uploadimgevent',{// 自定义组件的事件的触发机制
+              name:name,
+              value:imgSrc
+            })
+          }
+        })
+      });
+    },
+
+    onRemoveBtnClicked(e) { // 图片移除按钮点击
+      const name = e.target.dataset.name
+      this.$cmlEmit('uploadremevent',{// 移除图片
+        name:name,
+        value:''
+      })
+    },
+  }
+
+  beforeCreate() {
+  }
+
+  created() {
+  }
+
+  beforeMount() {
+  }
+
+  mounted() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MUploadImage();
+</script>
+<style>
+  .hidden{
+    display: none;
+  }
+
+  .show{
+    display: block;
+  }
+
+  .avatar-uploader ,.avatar-uploader image{
+    height: 345cpx;
+    width: 345cpx;
+    border-radius: 40cpx;
+  }
+  .avatar-uploader{
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border:2cpx solid #f1f1f1;
+    background-color: #f7f8f9;
+  }
+
+  .avatar-uploader .addIcon{
+    width: 90cpx;
+    height: 90cpx;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -45cpx;
+    margin-top: -45cpx;
+    text-align: center;
+    font-size: 90cpx;
+    color:#999999;
+    font-weight: lighter;
+    line-height:90cpx;
+    text-align:center;
+  }
+
+  .avatar-uploader .removeIcon{
+    width: 40cpx;
+    height: 40cpx;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #e8e8e8;
+    border-radius: 50%;
+    text-align: center;
+  }
+
+</style>
+<script cml-type="json">
+{
+  "base": {
+    "component": true,
+    "usingComponents": {}
+  }
+}
+</script>

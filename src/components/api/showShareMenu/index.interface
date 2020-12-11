@@ -1,0 +1,28 @@
+<script cml-type="interface">
+interface ShowShareMenuInterface {
+  showShareMenu(): void;
+}
+
+</script>
+
+
+<script cml-type="wx">
+
+class Method implements ShowShareMenuInterface {
+  showShareMenu() {
+    wx.showShareMenu({
+      // 要求小程序返回分享目标信息
+      withShareTicket: true
+    });
+  }
+}
+
+export default new Method();
+</script>
+
+
+
+
+
+
+

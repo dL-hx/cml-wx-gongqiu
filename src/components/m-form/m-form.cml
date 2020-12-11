@@ -1,0 +1,68 @@
+<template>
+  <view formData="{{ formData }}">
+    <slot></slot>
+  </view>
+</template>
+
+<script>
+
+class MForm {
+  props = {
+    formData: Object
+  }
+
+  data = {
+
+  }
+
+  computed = {
+
+  }
+
+  watch  = {
+
+  }
+
+  methods = {
+    onInputChange(e){
+      console.log(e)
+      // this.data.formData = e.detail
+    },
+  }
+
+  beforeCreate() {
+  }
+
+  created() {
+  }
+
+  beforeMount() {
+  }
+
+  mounted() {
+
+  }
+
+  beforeDestroy() {
+
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MForm();
+</script>
+<style>
+
+</style>
+<script cml-type="json">
+{
+  "base": {
+    "component": true,
+    "usingComponents": {
+
+    }
+  }
+}
+</script>

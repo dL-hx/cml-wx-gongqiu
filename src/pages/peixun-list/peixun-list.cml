@@ -1,0 +1,225 @@
+<template>
+  <view class="list">
+    <refresh-view enablePullUpLoad="{{true}}"
+                  pullingUp="{{pullingUp}}"
+                  c-bind:onPullUpLoad="pullUploadHandle">
+
+    <view class="list-item" c-for="{{ list }}" c-for-index="idx" c-for-item="item"
+          c-bind:tap="eventHandle(item)"
+    >
+      <image src="{{ item.url }}"></image>
+      <view class="text">
+        <text>开始时间: {{ item.date }}</text>
+        <text class="status" style="background-color: {{item.bgc}}">{{ item.text }}</text>
+      </view>
+    </view>
+
+      <text class="loading-text">{{loadingText}}</text>
+    </refresh-view>
+  </view>
+</template>
+
+<script>
+import cml from 'chameleon-api'
+import request from "../../utils/request";
+import {formatDate, getCurrentTimeStamp, showToast} from "../../utils/utils";
+
+const PAGE_SIZE = 10
+
+const loadMore = function (obj) {
+
+  function getStatus(start, end) {
+    const now = getCurrentTimeStamp()
+
+    if(now < start){
+      return { text: '未开始', bgc: '#404040',flag:'ready' }
+    }else if(now>=start && now<end){
+      return { text: '已开始', bgc: '#008800',flag:'living' }
+    }else {
+      return { text: '回看', bgc: '#05a0fd',flag:'replay' }
+    }
+  }
+
+
+  request('/v/video/list', {
+            size: 10,
+            page: obj.pageNow||1
+          },
+          'GET')
+          .then(res=>{
+            const data = res.data.list.map(item=>{
+              const { vimg,startTime,endTime, ...rest} = item
+              const status = getStatus(startTime,endTime)
+              return {
+                url: vimg,
+                date: formatDate(startTime),
+                ...status,
+                ...rest
+              }
+            })
+
+            obj.cb&&obj.cb({
+              list: data,
+              total: res.total,
+            })
+
+          })
+}
+
+class PeixunList   {
+  data = {
+    // list: [
+    //   {
+    //     url: require("../../assets/live/live2.jpg"),
+    //     date:"2020-03-19 15:00:00",
+    //     text:"未开始"
+    //   },
+    //   {
+    //     url: require("../../assets/live/live1.jpg"),
+    //     date:"2020-03-20 15:00:00",
+    //     text:"未开始"
+    //   }
+    // ],
+    list:[],
+
+
+    pullingUp: false,
+    loadingText: '加载中...',
+
+    pageNow:1, // 当前的页码
+    total:1, // 列表总数
+  }
+
+  computed = {
+  }
+
+  watch  = {
+  }
+
+  methods = {
+    goToPathHandle(path , query={}){
+      // const opt= e.currentTarget.dataset.opt
+      cml.navigateTo({
+        path,
+        query
+      })
+    },
+
+    eventHandle(item){
+      if (item.flag=='ready'){
+        showToast('当前培训尚未开始')
+        return false;
+      }
+
+      this.goToPathHandle('/pages/peixun-detail/peixun-detail', item)
+    },
+
+    pullUploadHandle(e) {
+      this.pullingUp = true;
+      let me = this
+      const isAddPage =  me.pageNow < me.total / PAGE_SIZE
+      if (isAddPage){
+        me.loadingText = '加载中...'
+        me.pageNow = me.data.pageNow + 1
+
+        loadMore({
+          pageNow:me.pageNow,
+          cb:function (res) {
+            me.loadingText = '加载完成'
+            me.list = me.list.concat(res.list)
+            me.pullingUp = false;
+          }
+        })
+      }else {
+        me.loadingText = '没有更多数据'
+      }
+    }
+
+
+  }
+
+  beforeCreate(query) {
+    let me = this
+    loadMore({
+      cb:function (res) {
+        me.list = res.list
+        me.total = res.total
+      }
+    })
+
+  }
+
+  created(query) {
+  }
+
+  beforeMount(query) {
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new PeixunList();
+</script>
+
+<style>
+  .loading-text {
+    height: 80cpx;
+    line-height: 80cpx;
+    text-align: center;
+    color: #999;
+    font-size: 24cpx;
+  }
+
+  .list{
+    height: 300cpx;
+  }
+
+  .list-item image{
+    width: 100%;
+    height: 452cpx;
+  }
+
+  .list-item .text{
+    padding: 20cpx 30cpx;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items:center;
+  }
+.list-item .text>text{
+  font-size:28cpx;
+}
+  .list-item .status{
+    background-color: #999;
+    color: #fff;
+    border-radius: 5cpx;
+    font-size: 24cpx;
+    padding: 8cpx 12cpx;
+  }
+
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {}
+  },
+  "wx": {
+    "navigationBarTitleText": "西安市中小企业服务中心培训",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

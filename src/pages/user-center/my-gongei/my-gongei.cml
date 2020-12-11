@@ -1,0 +1,177 @@
+<template>
+  <block>
+    <block c-if="{{ list.length>0 }}">
+      <view class="list w">
+        <view class="list-container">
+          <view class="list-item" c-for="{{ list }}" c-for-index="idx" c-for-item="item"  c-bind:tap="itemTapHandle(item)">
+            <view class="list-item-text">
+              <text class="title">{{ item.title }}</text>
+              <!-- m-icon-text -->
+              <view style="flex-direction: row; align-items: center;overflow: hidden;">
+                <text class="subTitle">{{ item.subTitle }}</text>
+              </view>
+              <!-- m-icon-text -->
+              <view style="flex-direction: row; align-items: center">
+                <view class="status" style="background-color:{{item.bgc}}">
+                  {{ item.text }}
+                </view>
+                <text class="date">{{ item.date }}</text>
+              </view>
+              <!-- m-icon-text -->
+
+            </view>
+            <image src="{{ item.url ? item.url: defaultSrc }}"></image>
+          </view>
+
+        </view>
+      </view>
+    </block>
+    <block c-else>
+      <view class="default"></view>
+    </block>
+  </block>
+</template>
+
+<script>
+import cml from 'chameleon-api'
+import request from "../../../utils/request";
+import store from "../../../store";
+import {formatDate} from "../../../utils/utils";
+
+class MyGongei   {
+  props = {
+    list: {
+      type: Array,
+      default:[]
+    }
+  }
+
+  data = {
+    defaultSrc: 'https://wm.source.wiimedia.cn/images/default.jpg',
+  }
+
+  computed = {
+
+  }
+
+  watch  = {
+
+  }
+
+  methods = {
+    goToPathHandle(path , query={}){
+      cml.navigateTo({
+        path,
+        query
+      })
+    },
+    itemTapHandle(item){ // list Item tap事件
+      switch (item.status) {
+        case 1:
+        case 2:
+          const {originData, ...rest}= item
+          this.goToPathHandle('/pages/gongei-detail/gongei-detail', {...rest, isLook:false})
+          return true;
+        case 3:
+          this.goToPathHandle('/pages/gongei/gongei' ,{...item.originData })
+          return true;
+      }
+      return false;
+    },
+  }
+
+   beforeCreate(query) {
+
+   }
+
+  created(query) {
+
+  }
+
+  beforeMount(query) {
+
+  }
+
+  onShow() {
+  }
+
+  mounted() {
+  }
+
+  onHide() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MyGongei();
+</script>
+
+<style>
+  .default{
+    color:#fff;
+    height: 1000cpx;
+    background: url('https://wm.source.wiimedia.cn/images/nodata.png') no-repeat center top;
+  }
+
+  .w{
+    margin: 0 30cpx;
+  }
+
+  .list .list-container{
+    height: 500cpx;
+  }
+
+
+  .list .list-item {
+    flex-direction: row;
+    height: 216cpx;
+    align-items: center;
+    border-bottom: 1cpx solid #f1f1f1;
+  }
+
+  .list .list-item-text {
+    flex: 1;
+    line-height: 45cpx;
+  }
+
+  .list .list-item image{
+    width: 230cpx;
+    height: 176cpx;
+  }
+
+  .list .list-item-text .subTitle{
+    font-size: 25cpx;
+    margin-left: 10cpx;
+  }
+
+  .list .list-item-text .date{
+    font-size: 25cpx;
+    color: #999999;
+    margin-left: 10cpx;
+  }
+  .list .list-item-text .status{
+    font-size: 24cpx;
+    color: #fff;
+    width: 100cpx;
+    text-align: center;
+    border-radius: 20cpx;
+  }
+</style>
+
+<script cml-type="json">
+{
+  "base": {
+    "usingComponents": {}
+  },
+  "wx": {
+    "navigationBarTitleText": "index",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#E2E2E2"
+  }
+}
+</script>

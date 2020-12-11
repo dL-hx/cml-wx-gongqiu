@@ -1,0 +1,167 @@
+<template>
+  <view class="container">
+      <origin-picker
+                     disabled="{{disabled}}"
+                     style="height: {{height}}cpx;"
+                     mode="selector"
+                     bindchange="onSelectChange"
+                     data-name="{{ name }}"
+                     range="{{ list }}"
+                     value="{{ currentIndex }}"
+                     range-key="text"
+      >
+        <text class="{{ centerStyle }}" style="{{ topStyle }}"> <block c-if="{{ showIndex }}">{{index}} :</block> {{index? list[currentIndex].text : placeholder }}</text>
+      </origin-picker>
+  </view>
+</template>
+
+<script>
+
+class MPicker implements MPickerInterface{
+
+  props = {
+    list: Array,
+    name: String,
+    index:Number,
+
+    height: {
+      type: Number,
+      default: 42
+    },
+
+    top:{ // 文字距离顶部高度
+      type:String,
+      default:'',
+    },
+    zIndex:{
+      type:Number,
+      default:0,
+    },
+
+    fontSize:{
+      type:Number,
+      default:32,
+    },
+
+    color:{ // 文字颜色 #fffff/ #fff / red
+      type:String,
+      default:'',
+    },
+
+
+
+    isCenter:{
+      type:Boolean,
+      default:false
+    },
+
+    disabled:{
+      type:Boolean,
+      default:false
+    },
+
+    placeholder:{
+      type:String,
+      default: "请选择"
+    },
+    showIndex:{ // 用于展示list, item 的index属性(开发使用)
+      type:Boolean,
+      default: false
+    },
+  }
+
+  data = {
+    currentIndex:0 // 当前是数组的第几个(表示选择了 list 中的第几个)
+  }
+
+  computed = {
+    centerStyle(){
+      return this.isCenter?'search-text':''
+    },
+
+    topStyle(){ // 距离顶部的高度
+      const top = parseInt(this.top, 10)
+      const zIndex = this.zIndex
+      const fontSize = this.fontSize
+      const color = this.color
+
+      let styleList = [] // 样式数组
+
+      if (top){
+        let style = `margin-top:${top}rpx;`;
+        styleList.push(style)
+      }
+
+      if (zIndex){
+        let style = `z-index:${zIndex};`;
+        styleList.push(style)
+      }
+
+      if (color){
+        let style = `color:${color};`;
+        styleList.push(style)
+      }
+
+      if (fontSize){
+        let style = `font-size:${fontSize}rpx;`;
+        styleList.push(style)
+      }
+      return styleList.join('');
+    },
+  }
+
+  watch  = {
+  }
+
+  methods = {
+
+    onSelectChange(e) {
+      const currentIndex = this.currentIndex = e.detail.value// 修改当前的索引, 当前是数组的第几个
+
+      const value = this.list[currentIndex].id // 这一项的id
+
+      const name = e.target.dataset.name
+
+      this.$cmlEmit('selectevent',{// 自定义组件的事件的触发机制
+        name:name,
+        value:value
+      })
+    },
+
+  }
+
+  beforeCreate() {
+
+
+  }
+
+  created() {
+  }
+
+  beforeMount() {
+  }
+
+  mounted() {
+  }
+
+  beforeDestroy() {
+  }
+
+  destroyed() {
+  }
+}
+
+export default new MPicker();
+</script>
+<style>
+
+</style>
+<script cml-type="json">
+{
+  "base": {
+    "component": true,
+    "usingComponents": {
+    }
+  }
+}
+</script>
